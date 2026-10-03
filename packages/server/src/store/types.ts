@@ -1,5 +1,6 @@
-export type DecisionPath = 'memory' | 'pattern' | 'check' | 'ai' | 'human';
-export type DecisionType = 'choice' | 'score' | 'check' | string;
+// One definition of these two types: the decision schema owns them.
+import type { DecisionPath, DecisionType } from '../core/schema.js';
+export type { DecisionPath, DecisionType };
 export type PatternStatus = 'candidate' | 'shadow' | 'active' | 'disabled' | 'demoted';
 export type SessionStatus = 'active' | 'completed' | 'terminated' | string;
 

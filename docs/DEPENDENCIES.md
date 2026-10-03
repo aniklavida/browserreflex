@@ -16,6 +16,7 @@ Shipped production dependencies compiled or bundled into runtime packages.
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
 | `better-sqlite3` | `^13.0.3` | MIT | production | 2026-10-04 |
+| `zod` | `^3.25.76` | MIT | runtime | 2026-10-04 |
 
 ## Development dependencies (dev-only)
 
