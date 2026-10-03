@@ -547,6 +547,18 @@ describe('readJsonBody', () => {
     });
     await expect(readJsonBody(req)).rejects.toMatchObject({ status: 413 });
   });
+
+  it('answers 413 over a real socket for a body over the limit', async () => {
+    const api = await startTestServer();
+
+    const res = await request(`${api.url}/api/settings`, {
+      method: 'PUT',
+      body: JSON.stringify({ key: 'theme', value: 'a'.repeat(MAX_BODY_BYTES + 1024) }),
+    });
+
+    expect(res.status).toBe(413);
+    expect(api.store.settings.list()).toEqual([]);
+  });
 });
 
 // ---------------------------------------------------------------------------
