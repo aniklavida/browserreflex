@@ -27,4 +27,5 @@ export {
 } from './security/redact.js';
 export * from './core/schema.js';
 export * from './core/memory.js';
+export * from './core/log.js';
 export * from './store/index.js';

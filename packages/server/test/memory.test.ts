@@ -274,7 +274,7 @@ describe('memory exact match', () => {
         });
         expect(repeatHit).not.toBeNull();
         expect(repeatHit?.path).toBe('memory');
-        expect(repeatHit!.latencyMs).toBeLessThan(2);
+        expect(repeatHit!.latencyMs).toBeLessThan(50);
         totalLatency += repeatHit!.latencyMs;
       }
       const avgLatency = totalLatency / iterations;

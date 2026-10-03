@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,10 +19,15 @@ export const sourceEntry = resolve(serverPackageRoot, 'src/mcp/start.ts');
 export const builtEntry = resolve(serverPackageRoot, 'dist/mcp/start.js');
 
 function spawnParameters(entry: string) {
+  const tempDbDir = mkdtempSync(join(tmpdir(), 'browserreflex-stdio-test-'));
   return {
     command: process.execPath,
     args: entry.endsWith('.ts') ? ['--import', 'tsx', entry] : [entry],
     cwd: serverPackageRoot,
+    env: {
+      ...process.env,
+      BROWSERREFLEX_DB_PATH: process.env.BROWSERREFLEX_DB_PATH ?? join(tempDbDir, 'test.db'),
+    },
     stderr: 'pipe' as const,
   };
 }
