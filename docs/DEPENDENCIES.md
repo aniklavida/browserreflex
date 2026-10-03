@@ -11,12 +11,15 @@ Status: **implemented and tested**. All direct dependencies are recorded with th
 
 ## Production dependencies
 
-Shipped production dependencies compiled or bundled into runtime packages.
+These ship with `@browserreflex/server` and are installed for anyone who runs the MCP server. `pnpm check-licenses` walks the resolved production tree and reports the licence of each package; it was run on 2026-10-04 and passed.
 
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
+| `@modelcontextprotocol/sdk` | `^1.32.0` | MIT | production | 2026-10-04 |
 | `better-sqlite3` | `^13.0.3` | MIT | production | 2026-10-04 |
-| `zod` | `^3.25.76` | MIT | runtime | 2026-10-04 |
+| `zod` | `^3.25.76` | MIT | production | 2026-10-04 |
+
+`@modelcontextprotocol/sdk` declares `zod` and `@cfworker/json-schema` as peer dependencies. Both are MIT and both are resolved into the production tree, so both are covered by the check above. The checker prints `0.0.0` as the version of every package because `pnpm licenses list --json` does not include a version field per package, so the check verifies licences, not versions.
 
 ## Development dependencies (dev-only)
 
@@ -29,6 +32,11 @@ Development tools are not shipped to end-users or bundled in production packages
 | `@types/node` | `^22.13.4` | MIT | dev-only | 2026-10-04 |
 | `eslint` | `^9.20.0` | MIT | dev-only | 2026-10-04 |
 | `prettier` | `^3.5.1` | MIT | dev-only | 2026-10-04 |
+| `tsx` | `^4.23.15` | MIT | dev-only (runs the server from TypeScript in the stdio tests) | 2026-10-04 |
 | `typescript` | `~5.8.3` | Apache-2.0 | dev-only | 2026-10-04 |
 | `typescript-eslint` | `^8.24.0` | MIT | dev-only | 2026-10-04 |
 | `vitest` | `^3.0.5` | MIT | dev-only | 2026-10-04 |
+
+The MCP inspector was used by hand to check the server (`npx
+@modelcontextprotocol/inspector`, MIT). It is not a dependency of the repository and is
+not installed by it.
