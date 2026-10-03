@@ -309,6 +309,58 @@ export function logDecision(
     created_at: params.createdAt ?? params.created_at ?? new Date().toISOString(),
   };
 
+  if (patternId) {
+    if (params.store && 'patterns' in params.store) {
+      const pRepo = (params.store as DatabaseStore).patterns;
+      if (!pRepo.getById(patternId)) {
+        pRepo.create({
+          id: patternId,
+          name: patternId,
+          decision_type: decisionType,
+          rules: JSON.stringify({}),
+          status: 'active',
+          confidence: params.confidence,
+          is_safety: isSafety ? 1 : 0,
+        });
+      }
+    } else if (params.store && 'prepare' in params.store) {
+      const db = params.store as Database.Database;
+      const row = db.prepare('SELECT id FROM patterns WHERE id = ?').get(patternId);
+      if (!row) {
+        const now = new Date().toISOString();
+        db.prepare(
+          `
+          INSERT INTO patterns (id, name, decision_type, rules, status, confidence, is_safety, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        ).run(
+          patternId,
+          patternId,
+          decisionType,
+          '{}',
+          'active',
+          params.confidence,
+          isSafety ? 1 : 0,
+          now,
+          now,
+        );
+      }
+    } else if (!params.store) {
+      const defStore = getDefaultStore();
+      if (!defStore.patterns.getById(patternId)) {
+        defStore.patterns.create({
+          id: patternId,
+          name: patternId,
+          decision_type: decisionType,
+          rules: JSON.stringify({}),
+          status: 'active',
+          confidence: params.confidence,
+          is_safety: isSafety ? 1 : 0,
+        });
+      }
+    }
+  }
+
   let decisionRepo: DecisionRepo;
   if (params.store) {
     if ('decisions' in params.store) {

@@ -19,6 +19,7 @@ import { DecisionPathSchema, DecisionTypeSchema, SCHEMA_VIOLATION } from '../cor
 import { type RouteBatchResult, routeBatch } from '../core/router.js';
 import { createMemory } from '../core/memory.js';
 import { getDefaultStore, type DatabaseStore, type Session } from '../index.js';
+import type { PatternEngine } from '../patterns/index.js';
 
 export interface DecideInput {
   questions: unknown[];
@@ -35,6 +36,7 @@ export interface DecideContext {
   store?: DatabaseStore | undefined;
   session?: Session | undefined;
   sessionId?: string | undefined;
+  patternEngine?: PatternEngine | undefined;
 }
 
 export const decideInputSchema: ZodRawShape = {
@@ -115,5 +117,6 @@ export async function executeDecide(
     store,
     session: context.session ?? context.sessionId ?? null,
     url,
+    patternEngine: context.patternEngine,
   });
 }

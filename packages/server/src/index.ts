@@ -31,3 +31,4 @@ export * from './core/log.js';
 export * from './core/router.js';
 export * from './tools/decide.js';
 export * from './store/index.js';
+export * from './patterns/index.js';
