@@ -18,3 +18,4 @@ export function isSafetyAdvisory(): boolean {
 }
 
 export * from './core/schema.js';
+export * from './store/index.js';
