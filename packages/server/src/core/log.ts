@@ -30,6 +30,7 @@ import {
   type Decision,
   type InsertDecision,
   type Session,
+  type UpdateDecision,
   DecisionRepo,
   SessionRepo,
   createStore,
@@ -377,6 +378,98 @@ export function logDecision(
 
 /** Export log alias for convenient tool invocation. */
 export const log = logDecision;
+
+export interface UpdateDecisionLogParams {
+  id: string;
+  answer: string | number | boolean | Answer | Record<string, unknown>;
+  confidence: number;
+  path: DecisionPath;
+  latencyMs?: number | undefined;
+  latency_ms?: number | undefined;
+  isSafety?: boolean | number | undefined;
+  is_safety?: boolean | number | undefined;
+  needsReview?: boolean | number | undefined;
+  needs_review?: boolean | number | undefined;
+  patternId?: string | null | undefined;
+  pattern_id?: string | null | undefined;
+  store?: DatabaseStore | Database.Database | undefined;
+}
+
+/**
+ * Updates an existing decision record in SQLite with the verified answer, path,
+ * confidence and latency.
+ *
+ * Invariant:
+ * - A decision record that misdescribes itself is worse than no record:
+ *   path and confidence are strictly validated before updating the record.
+ */
+export function updateDecisionLog(params: UpdateDecisionLogParams): Decision | null {
+  if (!DECISION_PATHS.includes(params.path)) {
+    throw new SchemaViolationException(
+      `Invalid decision path: ${String(params.path)}. Expected one of: ${DECISION_PATHS.join(', ')}`,
+      'path',
+    );
+  }
+
+  if (
+    typeof params.confidence !== 'number' ||
+    Number.isNaN(params.confidence) ||
+    params.confidence < 0 ||
+    params.confidence > 1
+  ) {
+    throw new SchemaViolationException(
+      `Confidence must be a number between 0 and 1, got ${params.confidence}`,
+      'confidence',
+    );
+  }
+
+  let decisionRepo: DecisionRepo;
+  if (params.store) {
+    if ('decisions' in params.store) {
+      decisionRepo = params.store.decisions;
+    } else {
+      decisionRepo = new DecisionRepo(params.store);
+    }
+  } else {
+    decisionRepo = getDefaultStore().decisions;
+  }
+
+  let answerStr: string;
+  if (typeof params.answer === 'string') {
+    answerStr = params.answer;
+  } else if (typeof params.answer === 'number' || typeof params.answer === 'boolean') {
+    answerStr = String(params.answer);
+  } else {
+    answerStr = JSON.stringify(params.answer);
+  }
+
+  const updateData: UpdateDecision = {
+    answer: answerStr,
+    confidence: params.confidence,
+    path: params.path,
+  };
+
+  const latencyMs = params.latencyMs ?? params.latency_ms;
+  if (latencyMs !== undefined) {
+    updateData.latency_ms = latencyMs;
+  }
+  const isSafety = params.isSafety ?? params.is_safety;
+  if (isSafety !== undefined) {
+    updateData.is_safety = isSafety;
+  }
+  const needsReview = params.needsReview ?? params.needs_review;
+  if (needsReview !== undefined) {
+    updateData.needs_review = needsReview;
+  }
+  const patternId = params.patternId ?? params.pattern_id;
+  if (patternId !== undefined) {
+    updateData.pattern_id = patternId;
+  }
+
+  return decisionRepo.update(params.id, updateData);
+}
+
+export const updateDecision = updateDecisionLog;
 
 /**
  * Tracks MCP connection sessions and manages lifecycle updates.

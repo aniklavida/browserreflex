@@ -16,6 +16,8 @@ These ship with `@browserreflex/server` and are installed for anyone who runs th
 Redaction (`packages/server/src/security/redact.ts`, 2026-10-04) uses only the Node standard library (`node:crypto`), so it added no dependency to this table.
 Pattern engine core (`packages/server/src/patterns/*`, 2026-10-04) uses only the Node standard library and internal helpers, adding no dependency to this table.
 
+The `feedback` tool (`packages/server/src/tools/feedback.ts`, 2026-10-04) reuses the store repositories, the memory module and `redact`, and adds no dependency to this table.
+
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
 | `@modelcontextprotocol/sdk` | `^1.32.0` | MIT | production | 2026-10-04 |
