@@ -1,6 +1,12 @@
 {
   "name": "@browserreflex/packs",
   "version": "0.1.0",
+  "license": "MIT",
   "private": true,
-  "description": "Builtin YAML pattern packs and JSON schemas for BrowserReflex"
+  "description": "Builtin YAML pattern packs and JSON schemas for BrowserReflex",
+  "main": "./schema.json",
+  "files": [
+    "schema.json",
+    "examples"
+  ]
 }

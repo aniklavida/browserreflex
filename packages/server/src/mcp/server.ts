@@ -5,6 +5,14 @@ import type { ToolContext } from './tools/tool.js';
 import { createStore, type DatabaseStore } from '../store/index.js';
 import { createSessionTracker, logDecision, type SessionTracker } from '../core/log.js';
 import type { DecisionPath, Question, Answer } from '../core/schema.js';
+import {
+  type LoadedPack,
+  type PackValidationError,
+  type PatternEngine,
+  createPatternEngine,
+  loadPackFiles,
+  loadPacksFromDirectory,
+} from '../patterns/index.js';
 
 /** Server name sent in the MCP handshake. */
 export const SERVER_NAME = 'browserreflex';
@@ -31,6 +39,12 @@ export interface CreateServerOptions {
   readonly store?: DatabaseStore;
   /** Custom database path if store is not provided. */
   readonly dbPath?: string;
+  /** Pattern engine instance for fast-path matching. */
+  readonly patternEngine?: PatternEngine;
+  /** Paths to pattern pack YAML files to load. */
+  readonly packPaths?: readonly string[];
+  /** Directory containing pattern pack YAML files to load. */
+  readonly packsDirectory?: string;
 }
 
 export interface BrowserReflexMcpServer {
@@ -43,6 +57,12 @@ export interface BrowserReflexMcpServer {
   readonly store: DatabaseStore;
   /** Session tracker for MCP connections. */
   readonly sessionTracker: SessionTracker;
+  /** Pattern engine used for fast-path matching. */
+  readonly patternEngine: PatternEngine;
+  /** Successfully loaded pattern packs. */
+  readonly loadedPacks: readonly LoadedPack[];
+  /** Validation errors encountered while loading packs (pack skipped, server still starts). */
+  readonly packErrors: readonly PackValidationError[];
 }
 
 /**
@@ -63,6 +83,34 @@ export async function createMcpServer(
   const store = options.store ?? createStore(options.dbPath);
   const sessionTracker = createSessionTracker(store);
 
+  const patternEngine = options.patternEngine ?? createPatternEngine();
+  const loadedPacks: LoadedPack[] = [];
+  const packErrors: PackValidationError[] = [];
+
+  if (options.packsDirectory) {
+    const dirResult = loadPacksFromDirectory(options.packsDirectory);
+    loadedPacks.push(...dirResult.loadedPacks);
+    packErrors.push(...dirResult.errors);
+    if (dirResult.rules.length > 0) {
+      patternEngine.loadRules(dirResult.rules);
+    }
+  }
+
+  if (options.packPaths && options.packPaths.length > 0) {
+    const filesResult = loadPackFiles(options.packPaths);
+    loadedPacks.push(...filesResult.loadedPacks);
+    packErrors.push(...filesResult.errors);
+    if (filesResult.rules.length > 0) {
+      patternEngine.loadRules(filesResult.rules);
+    }
+  }
+
+  if (packErrors.length > 0) {
+    for (const err of packErrors) {
+      process.stderr.write(`[browserreflex pack warning] ${err.formatted}\n`);
+    }
+  }
+
   const toolNames = definitions.map((definition) => definition.name);
   const baseContext: ToolContext = {
     serverName: name,
@@ -70,6 +118,7 @@ export async function createMcpServer(
     transport,
     toolNames,
     store,
+    patternEngine,
   };
 
   const server = new McpServer({ name, version }, { instructions });
@@ -203,5 +252,14 @@ export async function createMcpServer(
     );
   }
 
-  return { server, toolNames, instructions, store, sessionTracker };
+  return {
+    server,
+    toolNames,
+    instructions,
+    store,
+    sessionTracker,
+    patternEngine,
+    loadedPacks,
+    packErrors,
+  };
 }

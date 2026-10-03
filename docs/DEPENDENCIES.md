@@ -15,13 +15,16 @@ These ship with `@browserreflex/server` and are installed for anyone who runs th
 
 Redaction (`packages/server/src/security/redact.ts`, 2026-10-04) uses only the Node standard library (`node:crypto`), so it added no dependency to this table.
 Pattern engine core (`packages/server/src/patterns/*`, 2026-10-04) uses only the Node standard library and internal helpers, adding no dependency to this table.
+Pattern pack loader (`packages/server/src/patterns/loader.ts`, 2026-10-04) uses `yaml` (ISC) for position-accurate YAML parsing and `ajv` (MIT) for JSON schema validation.
 
 The `feedback` tool (`packages/server/src/tools/feedback.ts`, 2026-10-04) reuses the store repositories, the memory module and `redact`, and adds no dependency to this table.
 
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
 | `@modelcontextprotocol/sdk` | `^1.32.0` | MIT | production | 2026-10-04 |
+| `ajv` | `^8.20.0` | MIT | production | 2026-10-04 |
 | `better-sqlite3` | `^13.0.3` | MIT | production | 2026-10-04 |
+| `yaml` | `^2.9.1` | ISC | production | 2026-10-04 |
 | `zod` | `^3.25.76` | MIT | production | 2026-10-04 |
 
 `@modelcontextprotocol/sdk` declares `zod` and `@cfworker/json-schema` as peer dependencies. Both are MIT and both are resolved into the production tree, so both are covered by the check above. The checker prints `0.0.0` as the version of every package because `pnpm licenses list --json` does not include a version field per package, so the check verifies licences, not versions.
