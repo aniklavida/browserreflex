@@ -1,0 +1,6 @@
+{
+  "name": "@browserreflex/packs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Builtin YAML pattern packs and JSON schemas for BrowserReflex"
+}
