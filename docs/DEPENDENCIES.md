@@ -11,24 +11,15 @@ Status: **implemented and tested**. All direct dependencies are recorded with th
 
 ## Production dependencies
 
-These ship with `@browserreflex/server` and are installed for anyone who runs the MCP
-server. `pnpm check-licenses` walks the resolved production tree and reports the licence
-of each package; it was run on 2026-10-04 and passed.
+These ship with `@browserreflex/server` and are installed for anyone who runs the MCP server. `pnpm check-licenses` walks the resolved production tree and reports the licence of each package; it was run on 2026-10-04 and passed.
 
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
 | `@modelcontextprotocol/sdk` | `^1.32.0` | MIT | production | 2026-10-04 |
-| `zod` | `^4.6.5` | MIT | production | 2026-10-04 |
+| `better-sqlite3` | `^13.0.3` | MIT | production | 2026-10-04 |
+| `zod` | `^3.25.76` | MIT | production | 2026-10-04 |
 
-`@modelcontextprotocol/sdk` declares `zod` and `@cfworker/json-schema` as peer
-dependencies. Both are MIT and both are resolved into the production tree, so both are
-covered by the check above.
-
-The SDK's own dependencies were checked on 2026-10-04 as well: 91 resolved production
-packages, all MIT, BSD-2-Clause, BSD-3-Clause or ISC. Nothing in that tree is
-copyleft, source-available or licence-gated. One caveat about the checker itself: it
-prints `0.0.0` as the version of every package because `pnpm licenses list --json` does
-not include a version field per package, so the check verifies licences, not versions.
+`@modelcontextprotocol/sdk` declares `zod` and `@cfworker/json-schema` as peer dependencies. Both are MIT and both are resolved into the production tree, so both are covered by the check above. The checker prints `0.0.0` as the version of every package because `pnpm licenses list --json` does not include a version field per package, so the check verifies licences, not versions.
 
 ## Development dependencies (dev-only)
 
@@ -37,6 +28,7 @@ Development tools are not shipped to end-users or bundled in production packages
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
 | `@eslint/js` | `^9.20.0` | MIT | dev-only | 2026-10-04 |
+| `@types/better-sqlite3` | `^9.6.0` | MIT | dev-only | 2026-10-04 |
 | `@types/node` | `^22.13.4` | MIT | dev-only | 2026-10-04 |
 | `eslint` | `^9.20.0` | MIT | dev-only | 2026-10-04 |
 | `prettier` | `^3.5.1` | MIT | dev-only | 2026-10-04 |
