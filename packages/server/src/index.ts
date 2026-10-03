@@ -33,3 +33,4 @@ export * from './tools/decide.js';
 export * from './tools/submit_answers.js';
 export * from './tools/feedback.js';
 export * from './store/index.js';
+export * from './patterns/index.js';
