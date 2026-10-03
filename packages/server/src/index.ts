@@ -17,6 +17,14 @@ export function isSafetyAdvisory(): boolean {
   return true;
 }
 
+export {
+  hashForMemoryLookup,
+  redact,
+  redactWithHash,
+  type RedactionFinding,
+  type RedactionResult,
+  type RedactionRuleId,
+} from './security/redact.js';
 export * from './core/schema.js';
 export * from './core/memory.js';
 export * from './store/index.js';
