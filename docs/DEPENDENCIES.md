@@ -15,6 +15,8 @@ These ship with `@browserreflex/server` and are installed for anyone who runs th
 
 Redaction (`packages/server/src/security/redact.ts`, 2026-10-04) uses only the Node standard library (`node:crypto`), so it added no dependency to this table.
 
+The local REST API and the built UI it serves (`packages/server/src/api/`, 2026-10-04) use only the Node standard library (`node:http`, `node:fs`, `node:path`), so it added no dependency to this table either. There is no web framework: the HTTP server, the router and the static file serving are written against `node:http`.
+
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
 | `@modelcontextprotocol/sdk` | `^1.32.0` | MIT | production | 2026-10-04 |
