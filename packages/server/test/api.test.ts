@@ -744,7 +744,13 @@ describe('POST /api/reviews/:id/answer', () => {
     const body = res.json() as Record<string, Record<string, unknown>>;
     expect(body.feedback.decision_id).toBe(created.id);
     expect(body.feedback.correct_value).toBe('true');
-    expect(body.feedback.source).toBe('human');
+    expect(body.feedback.source).toBe('user');
+    expect(body.review_cleared).toBe(true);
+    // What the answer changed, reported by the feedback function itself: this
+    // decision came from no pattern, so the pattern report is null, not invented.
+    expect(body.recorded.status).toBe('recorded');
+    expect(body.recorded.memory_confirmed).toBe(true);
+    expect(body.recorded.pattern).toBeNull();
 
     const updated = api.store.decisions.getById(created.id);
     expect(updated?.needs_review).toBe(0);
@@ -752,6 +758,60 @@ describe('POST /api/reviews/:id/answer', () => {
     // it does not rewrite how the answer was produced.
     expect(updated?.path).toBe('human');
     expect(updated?.confidence).toBe(0.6);
+  });
+
+  it('reports a pattern sample when the answer came from a pattern', async () => {
+    const api = await startTestServer();
+
+    const pattern = api.store.patterns.create({
+      name: 'cookie-banner',
+      decision_type: 'check',
+      rules: JSON.stringify({ text_match: 'Accept Cookies' }),
+    });
+    const created = api.store.decisions.create({
+      decision_type: 'check',
+      question: 'Cookie banner?',
+      answer: 'true',
+      confidence: 0.7,
+      path: 'pattern',
+      pattern_id: pattern.id,
+      needs_review: true,
+    });
+
+    const res = await request(`${api.url}/api/reviews/${created.id}/answer`, {
+      method: 'POST',
+      body: JSON.stringify({ correct_value: false }),
+    });
+    expect(res.status).toBe(201);
+
+    const body = res.json() as Record<string, Record<string, unknown>>;
+    const report = body.recorded.pattern as Record<string, unknown>;
+    expect(report.pattern_id).toBe(pattern.id);
+    expect(report.sample_recorded).toBe(true);
+    expect(report.agreed).toBe(false);
+    expect(report.disagreed_count).toBe(1);
+  });
+
+  it('rejects a correct_value the decision type cannot hold', async () => {
+    const api = await startTestServer();
+
+    const created = api.store.decisions.create({
+      decision_type: 'check',
+      question: 'Cookie banner?',
+      answer: 'false',
+      confidence: 0.5,
+      path: 'ai',
+      needs_review: true,
+    });
+
+    const res = await request(`${api.url}/api/reviews/${created.id}/answer`, {
+      method: 'POST',
+      body: JSON.stringify({ correct_value: 'maybe later' }),
+    });
+    expect(res.status).toBe(400);
+    expect(api.store.feedback.getByDecisionId(created.id)).toEqual([]);
+    // The item stays in the queue: a refused answer must not look answered.
+    expect(api.store.decisions.getById(created.id)?.needs_review).toBe(1);
   });
 
   it('redacts the note before storing it', async () => {

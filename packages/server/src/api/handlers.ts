@@ -147,14 +147,23 @@ export function handleAnswerReview(store: DatabaseStore) {
     const body = await readObjectBody(req, res);
     if (body === undefined) return;
 
-    if (typeof body.correct_value !== 'string' || body.correct_value.trim() === '') {
-      errorResponse(res, 400, 'correct_value is required and must be a non-empty string');
+    const correctValue = body.correct_value;
+    if (
+      typeof correctValue !== 'string' &&
+      typeof correctValue !== 'number' &&
+      typeof correctValue !== 'boolean'
+    ) {
+      errorResponse(
+        res,
+        400,
+        'correct_value is required and must be a string, a number or a boolean',
+      );
       return;
     }
 
-    const result = applyReviewAnswer(store, {
+    const result = await applyReviewAnswer(store, {
       decision_id: params.id ?? '',
-      correct_value: body.correct_value,
+      correct_value: correctValue,
       note: typeof body.note === 'string' ? body.note : null,
     });
 
@@ -167,7 +176,11 @@ export function handleAnswerReview(store: DatabaseStore) {
       return;
     }
 
-    jsonResponse(res, 201, { feedback: result.feedback });
+    jsonResponse(res, 201, {
+      feedback: result.feedback,
+      recorded: result.recorded,
+      review_cleared: result.review_cleared,
+    });
   };
 }
 
@@ -188,23 +201,29 @@ export function handleBulkReviews(store: DatabaseStore) {
     const results: unknown[] = [];
     const errors: { index: number; error: string }[] = [];
 
-    body.answers.forEach((entry, index) => {
+    for (const [index, entry] of body.answers.entries()) {
       if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) {
         errors.push({ index, error: 'Each answer must be an object' });
-        return;
+        continue;
       }
       const item = entry as Record<string, unknown>;
-      const result = applyReviewAnswer(store, {
+      const correctValue = item.correct_value;
+      const result = await applyReviewAnswer(store, {
         decision_id: typeof item.decision_id === 'string' ? item.decision_id : '',
-        correct_value: typeof item.correct_value === 'string' ? item.correct_value : '',
+        correct_value:
+          typeof correctValue === 'string' ||
+          typeof correctValue === 'number' ||
+          typeof correctValue === 'boolean'
+            ? correctValue
+            : '',
         note: typeof item.note === 'string' ? item.note : null,
       });
       if (!result.ok) {
         errors.push({ index, error: describeReviewError(result.error) });
-        return;
+        continue;
       }
-      results.push({ feedback: result.feedback });
-    });
+      results.push({ feedback: result.feedback, recorded: result.recorded });
+    }
 
     jsonResponse(res, 200, { processed: results.length, results, errors });
   };

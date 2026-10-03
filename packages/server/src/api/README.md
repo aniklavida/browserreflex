@@ -24,8 +24,8 @@ All responses are JSON, snake_case, served on `127.0.0.1`.
 | GET | `/api/decisions` | A page of decisions; filters `session_id`, `domain`, `path`, `needs_review`, `is_safety`, `limit`, `offset` |
 | GET | `/api/decisions/:id` | One decision |
 | GET | `/api/reviews` | The decisions waiting for a person; `limit`, `offset` |
-| POST | `/api/reviews/:id/answer` | Stores `{ correct_value, note }`, clears the review flag |
-| POST | `/api/reviews/bulk` | Stores `{ answers: [{ decision_id, correct_value, note }] }`, reporting per-item errors |
+| POST | `/api/reviews/:id/answer` | Stores `{ correct_value, note }` through the `feedback` function, clears the review flag, reports what the answer changed |
+| POST | `/api/reviews/bulk` | Stores `{ answers: [{ decision_id, correct_value, note }] }` the same way, reporting per-item errors |
 | GET | `/api/settings` | Every setting, with credential values masked |
 | PUT | `/api/settings` | Stores `{ key, value }`; refuses a credential name or a value carrying a secret |
 | GET | `/api/packs` | Pattern packs; filter `active`, `limit`, `offset` |
@@ -47,11 +47,14 @@ the configured UI directory when there is one.
   than stored. Provider keys belong in the operating system keychain, which is
   **planned**.
 - **Nothing is repaired silently.** An invalid body is a 4xx with the reason, a
-  body over 512 KiB is a 413, and an unknown decision is a 404.
-- **A record is not rewritten by being answered.** Answering a review item writes
-  the feedback and clears the review flag; it does not change the path or the
-  confidence the decision was recorded with, and the response claims nothing about
-  memory or patterns.
+  body over 512 KiB is a 413, and a `correct_value` the decision's type cannot
+  hold is a 400 that stores nothing and leaves the item in the queue.
+- **A record is not rewritten by being answered.** Answering a review item goes
+  through `executeFeedback`, the same function the `feedback` tool uses: the value
+  is checked against the decision type, the note is redacted before it is stored,
+  and the pattern statistics are updated. On top of that the API clears the review
+  flag and reports what the answer changed, and nothing more. It does not change
+  the path or the confidence the decision was recorded with.
 - **The safety check stays advisory.** This API reads and records; it does not
   enforce a safety rule and does not stop an agent from acting.
 
