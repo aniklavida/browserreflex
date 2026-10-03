@@ -84,11 +84,6 @@ describe('feedback tool', () => {
     expect(correction.pattern).toBeNull();
     expect(correction.feedback_id).toBeDefined();
 
-    const rows = store.feedback.getByDecisionId(decisionId);
-    expect(rows).toHaveLength(1);
-    expect(rows[0]!.correct_value).toBe('cookie_banner');
-    expect(rows[0]!.source).toBe('agent');
-
     const afterFeedback = await executeDecide({ questions: [POPUP_QUESTION], state }, { store });
     expect(afterFeedback.needs_ai).toHaveLength(0);
     expect(afterFeedback.answers).toHaveLength(1);
@@ -100,6 +95,11 @@ describe('feedback tool', () => {
       promo_modal: 0,
       none: 0,
     });
+
+    const rows = store.feedback.getByDecisionId(decisionId);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.correct_value).toBe('cookie_banner');
+    expect(rows[0]!.source).toBe('agent');
   });
 
   it('a correction that differs from the stored answer replaces what memory returns next time', async () => {
