@@ -11,11 +11,9 @@ Status: **implemented and tested**. All direct dependencies are recorded with th
 
 ## Production dependencies
 
-No production dependencies are installed currently. The server scaffold and workspace packages have no runtime dependencies at this stage.
-
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
-| *(none)* | - | - | - | 2026-10-04 |
+| `zod` | `^3.25.76` | MIT | runtime | 2026-10-04 |
 
 ## Development dependencies (dev-only)
 
