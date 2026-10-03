@@ -104,7 +104,7 @@ export async function executeDecide(
   const memory = createMemory(store);
 
   const rawQuestions = Array.isArray(args.questions) ? args.questions : [];
-  const threshold = typeof args.threshold === 'number' ? args.threshold : 0.8;
+  const threshold = typeof args.threshold === 'number' ? args.threshold : undefined;
   const url = typeof args.url === 'string' ? args.url : undefined;
 
   return routeBatch({
