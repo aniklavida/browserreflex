@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { readdir } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { loadToolDefinitions } from '../src/mcp/tools/registry.js';
 import { SERVER_NAME, SERVER_VERSION } from '../src/mcp/server.js';
 import { loadInstructions } from '../src/mcp/instructions.js';
 import {
@@ -11,10 +12,27 @@ import {
   serverPackageRoot,
   sourceEntry,
 } from './helpers/stdio-server.js';
-import { resolve } from 'node:path';
 
 /** Budget from the card: the server must be answering within one second. */
 const STARTUP_BUDGET_MS = 1000;
+
+const toolsDirectory = new URL('../src/mcp/tools/', import.meta.url);
+
+/**
+ * Tool names derived from the file names on disk, following the documented convention
+ * of one `<tool_name>.tool.ts` file per tool, in kebab case.
+ *
+ * This is written out here rather than taken from the registry: a test that compares
+ * the served tools with whatever the registry produced passes even when the registry
+ * has quietly stopped finding files.
+ */
+async function toolNamesOnDisk(): Promise<string[]> {
+  const entries = await readdir(toolsDirectory);
+  return entries
+    .filter((entry) => entry.endsWith('.tool.ts') || entry.endsWith('.tool.js'))
+    .map((entry) => entry.replace(/\.tool\.(ts|js)$/, '').replaceAll('-', '_'))
+    .sort();
+}
 
 describe('MCP server over stdio', () => {
   let client: Client;
@@ -31,13 +49,11 @@ describe('MCP server over stdio', () => {
   });
 
   it('lists every tool found in the tools directory', async () => {
-    const definitions = await loadToolDefinitions();
+    const expected = await toolNamesOnDisk();
     const listed = await client.listTools();
 
-    expect(listed.tools.map((entry) => entry.name).sort()).toEqual(
-      definitions.map((definition) => definition.name).sort(),
-    );
-    expect(listed.tools.length).toBeGreaterThan(0);
+    expect(listed.tools.map((entry) => entry.name).sort()).toEqual(expected);
+    expect(expected).toContain('server_status');
   }, 30_000);
 
   it('serves the instructions text to the client', () => {

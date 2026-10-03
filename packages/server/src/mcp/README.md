@@ -20,11 +20,12 @@ permission or hook system.
 
 ## Adding a tool
 
-Create one file under `tools/`, named `<tool_name>.tool.ts`, exporting a `tool`
-definition (`tools/tool.ts` is the contract). The registry finds it by listing the
-directory, so nothing else has to be edited. A file that does not export a valid
-definition, or a name declared twice, stops the server from starting rather than
-producing a server that serves fewer tools than it was built with.
+Create one file under `tools/`, named `<tool_name>.tool.ts` in kebab case (`server_status`
+is `server-status.tool.ts`), exporting a `tool` definition (`tools/tool.ts` is the
+contract). The registry finds it by listing the directory, so nothing else has to be
+edited. A file that does not export a valid definition, or a name declared twice, stops
+the server from starting rather than producing a server that serves fewer tools than it
+was built with.
 
 ## Instructions text
 

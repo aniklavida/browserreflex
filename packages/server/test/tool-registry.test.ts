@@ -22,7 +22,7 @@ describe('tool registry', () => {
     const definitions = await loadToolDefinitions(fixturesDir('tools'));
 
     expect(definitions).toHaveLength(1);
-    expect(definitions[0]?.name).toBe('probe_tool');
+    expect(definitions[0]?.name).toBe('probe');
     expect(definitions[0]?.title).toBe('Probe tool');
   });
 

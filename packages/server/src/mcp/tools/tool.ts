@@ -23,6 +23,10 @@ export interface ToolContext {
  *
  * Both schemas are required, even for a tool that takes no input: a declared schema is
  * what lets the server reject an answer that does not match it.
+ *
+ * The file name carries the tool name in kebab case, so `server_status` lives in
+ * `server-status.tool.ts`. The stdio test checks the served tool list against the file
+ * names on disk, which only holds if the two agree.
  */
 export interface ToolDefinition {
   /** Wire name, lower snake case: `decide`, `page_check`, and so on. */
