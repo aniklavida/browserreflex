@@ -8,6 +8,7 @@ Status: **implemented and tested**. All direct dependencies are recorded with th
 - Copyleft, SSPL, BSL, or revenue/headcount-gated licences are strictly forbidden for shipped dependencies.
 - Every direct dependency (including dev tools) must be recorded here with its licence and verification date.
 - Compliance is verified automatically by `scripts/check-licenses.mjs` and enforced in CI.
+- A dependency that ships a prebuilt binary is recorded with every optional platform package it resolves, because `pnpm check-licenses` only sees the one that matches the machine it runs on.
 
 ## Production dependencies
 
@@ -22,10 +23,35 @@ The `feedback` tool (`packages/server/src/tools/feedback.ts`, 2026-10-04) reuses
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
 | `@modelcontextprotocol/sdk` | `^1.32.0` | MIT | production | 2026-10-04 |
+| `@napi-rs/keyring` | `^2.1.0` | MIT | production | 2026-10-04 |
 | `ajv` | `^8.20.0` | MIT | production | 2026-10-04 |
 | `better-sqlite3` | `^13.0.3` | MIT | production | 2026-10-04 |
 | `yaml` | `^2.9.1` | ISC | production | 2026-10-04 |
 | `zod` | `^3.25.76` | MIT | production | 2026-10-04 |
+
+## Key storage
+
+`packages/server/src/security/keys.ts` (2026-10-04) uses `@napi-rs/keyring` for the operating system keychain backend and only the Node standard library (`node:crypto`, `node:fs`) for the AES-256-GCM encrypted file backend.
+
+`@napi-rs/keyring` is MIT, and every platform package it depends on is MIT. It declares no runtime dependencies at all; the native bindings are twelve optional packages named for the platform and architecture, all MIT:
+
+| Package | Licence | Type |
+|---|---|---|
+| `@napi-rs/keyring-darwin-arm64` | MIT | production, optional, resolved on macOS on arm64 |
+| `@napi-rs/keyring-darwin-x64` | MIT | production, optional, resolved on macOS on x64 |
+| `@napi-rs/keyring-win32-x64-msvc` | MIT | production, optional, resolved on Windows |
+| `@napi-rs/keyring-linux-x64-gnu` | MIT | production, optional, resolved on Linux (glibc) |
+| `@napi-rs/keyring-linux-x64-musl` | MIT | production, optional, resolved on Linux (musl) |
+
+The remaining optional platform packages follow the same pattern and the same licence: `darwin` and `win32` on `ia32` and `arm64`, `linux` on `arm64`, `riscv64` and `arm-gnueabihf` in both `gnu` and `musl` flavours, and `freebsd-x64`.
+
+`pnpm check-licenses` prints `@napi-rs/keyring` and none of the twelve platform packages: the command reports the packages a workspace project depends on, not the optional ones the current machine happened to resolve. The platform packages are therefore recorded by hand above, and the checker cannot be the evidence for them. On macOS on arm64 the resolved platform package was confirmed present and MIT on 2026-10-04.
+
+Each platform package ships a prebuilt binary, so no compiler is needed to install. Because the platform packages are optional, a platform with no prebuilt binary still installs: the keychain backend then fails to load and `resolveKeyStore` falls back to the encrypted file store and reports `fellBack: true`.
+
+`keytar` was considered and rejected: it is archived, so it receives no fixes for a platform this project supports.
+
+## Other production dependencies
 
 `@modelcontextprotocol/sdk` declares `zod` and `@cfworker/json-schema` as peer dependencies. Both are MIT and both are resolved into the production tree, so both are covered by the check above. The checker prints `0.0.0` as the version of every package because `pnpm licenses list --json` does not include a version field per package, so the check verifies licences, not versions.
 
