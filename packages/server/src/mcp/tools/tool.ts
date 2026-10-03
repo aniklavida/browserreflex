@@ -1,5 +1,7 @@
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { ZodRawShape } from 'zod';
+import type { DatabaseStore, Decision, Session } from '../../store/index.js';
+import type { LogDecisionParams } from '../../core/log.js';
 
 /**
  * What the server knows about itself at registration time, passed to every tool so a
@@ -11,6 +13,14 @@ export interface ToolContext {
   readonly transport: string;
   /** Names of every tool this build serves, in registration order. */
   readonly toolNames: readonly string[];
+  /** The database store instance used by the server. */
+  readonly store?: DatabaseStore | undefined;
+  /** Active session for the current connection, if detected. */
+  readonly session?: Session | undefined;
+  /** ID of the active session, if detected. */
+  readonly sessionId?: string | undefined;
+  /** Logs a decision with the active connection session pre-filled. */
+  readonly logDecision?: ((params: LogDecisionParams) => Decision) | undefined;
 }
 
 /**
