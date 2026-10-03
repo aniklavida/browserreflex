@@ -36,16 +36,12 @@ export interface AnswerOutput {
   confidence: number;
   path: DecisionPath;
   pattern_id?: string | undefined;
-  patternId?: string | undefined;
   latency_ms: number;
-  latencyMs?: number | undefined;
   decision_id: string;
-  decisionId?: string | undefined;
 }
 
 export interface NeedsAiItem {
   decision_id: string;
-  decisionId?: string | undefined;
   id: string;
   type: DecisionType;
   text?: string | undefined;
@@ -56,7 +52,6 @@ export interface NeedsHumanItem {
   id: string;
   type?: DecisionType | undefined;
   decision_id?: string | undefined;
-  decisionId?: string | undefined;
   question?: Question | undefined;
   reason?: string | undefined;
 }
@@ -177,14 +172,11 @@ export function routeQuestion(options: RouteQuestionOptions): RouteQuestionResul
       confidence: memoryHit.confidence,
       path: 'memory',
       latency_ms: latencyMs,
-      latencyMs,
       decision_id: logged.id,
-      decisionId: logged.id,
       ...(memoryHit.answer.distribution ? { distribution: memoryHit.answer.distribution } : {}),
       ...(memoryHit.decision.pattern_id
         ? {
             pattern_id: memoryHit.decision.pattern_id,
-            patternId: memoryHit.decision.pattern_id,
           }
         : {}),
     };
@@ -221,7 +213,6 @@ export function routeQuestion(options: RouteQuestionOptions): RouteQuestionResul
     type: question.type,
     text: question.text,
     decision_id: logged.id,
-    decisionId: logged.id,
     question,
   };
 
