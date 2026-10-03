@@ -16,3 +16,5 @@ export const SCAFFOLD_STATUS = 'implemented and tested';
 export function isSafetyAdvisory(): boolean {
   return true;
 }
+
+export * from './store/index.js';
