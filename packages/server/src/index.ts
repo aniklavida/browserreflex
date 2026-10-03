@@ -30,5 +30,6 @@ export * from './core/memory.js';
 export * from './core/log.js';
 export * from './core/router.js';
 export * from './tools/decide.js';
+export * from './tools/submit_answers.js';
 export * from './tools/feedback.js';
 export * from './store/index.js';

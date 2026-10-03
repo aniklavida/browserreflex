@@ -24,6 +24,7 @@ describe('server instructions', () => {
 
     expect(text).toContain('server_status');
     expect(text).toContain('decide');
+    expect(text).toContain('submit_answers');
     expect(text).toMatch(/planned and are not implemented/);
     expect(text).toMatch(/never prevents an agent from acting/);
   });
