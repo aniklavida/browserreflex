@@ -93,6 +93,9 @@ export interface LogDecisionParams {
   created_at?: string | undefined;
   /** Optional injected store or database instance. */
   store?: DatabaseStore | Database.Database | undefined;
+  /** Optional precomputed input hash for memory lookup. */
+  inputHash?: string | undefined;
+  input_hash?: string | undefined;
 }
 
 export interface LogDecisionOptions {
@@ -111,6 +114,8 @@ export interface LogDecisionOptions {
   createdAt?: string | undefined;
   created_at?: string | undefined;
   store?: DatabaseStore | Database.Database | undefined;
+  inputHash?: string | undefined;
+  input_hash?: string | undefined;
 }
 
 /**
@@ -231,13 +236,21 @@ export function logDecision(
   let storedContext: string | null = null;
   let inputHash: string;
 
-  if (rawInput !== null) {
+  if (params.inputHash) {
+    inputHash = params.inputHash;
+  } else if (params.input_hash) {
+    inputHash = params.input_hash;
+  } else if (rawInput !== null) {
     const inputRedaction = redactWithHash(rawInput);
     storedContext = inputRedaction.redacted;
     inputHash = inputRedaction.originalHash;
   } else {
     // When no separate input/context is given, the question itself is the input
     inputHash = questionRedaction.originalHash;
+  }
+
+  if (rawInput !== null && storedContext === null) {
+    storedContext = redact(rawInput);
   }
 
   // Redact URL if provided

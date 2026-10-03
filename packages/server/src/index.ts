@@ -28,4 +28,6 @@ export {
 export * from './core/schema.js';
 export * from './core/memory.js';
 export * from './core/log.js';
+export * from './core/router.js';
+export * from './tools/decide.js';
 export * from './store/index.js';

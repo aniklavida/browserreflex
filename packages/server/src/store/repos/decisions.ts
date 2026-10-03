@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
-import type { Decision, DecisionFilter, InsertDecision } from '../types.js';
+import type { Decision, DecisionFilter, InsertDecision, UpdateDecision } from '../types.js';
 
 export class DecisionRepo {
   constructor(private readonly db: Database.Database) {}
@@ -168,6 +168,52 @@ export class DecisionRepo {
 
     const row = this.db.prepare(query).get(...params) as { total: number };
     return row.total;
+  }
+
+  update(id: string, updates: UpdateDecision): Decision | null {
+    const existing = this.getById(id);
+    if (!existing) return null;
+
+    const answer = updates.answer !== undefined ? updates.answer : existing.answer;
+    const confidence = updates.confidence !== undefined ? updates.confidence : existing.confidence;
+    const path = updates.path !== undefined ? updates.path : existing.path;
+    const patternId = updates.pattern_id !== undefined ? updates.pattern_id : existing.pattern_id;
+    const latencyMs = updates.latency_ms !== undefined ? updates.latency_ms : existing.latency_ms;
+    const isSafety =
+      updates.is_safety !== undefined
+        ? typeof updates.is_safety === 'boolean'
+          ? updates.is_safety
+            ? 1
+            : 0
+          : updates.is_safety
+        : existing.is_safety;
+    const needsReview =
+      updates.needs_review !== undefined
+        ? typeof updates.needs_review === 'boolean'
+          ? updates.needs_review
+            ? 1
+            : 0
+          : updates.needs_review
+        : existing.needs_review;
+
+    const stmt = this.db.prepare(`
+      UPDATE decisions
+      SET answer = ?, confidence = ?, path = ?, pattern_id = ?, latency_ms = ?, is_safety = ?, needs_review = ?
+      WHERE id = ?
+    `);
+
+    stmt.run(answer, confidence, path, patternId, latencyMs, isSafety, needsReview, id);
+
+    return {
+      ...existing,
+      answer,
+      confidence,
+      path,
+      pattern_id: patternId,
+      latency_ms: latencyMs,
+      is_safety: isSafety,
+      needs_review: needsReview,
+    };
   }
 
   delete(id: string): boolean {
