@@ -16,16 +16,18 @@
  */
 export const SKILL_TEXT = `# BrowserReflex
 
-Status: placeholder instructions for the bootstrap build. The full skill ships later.
+Status: placeholder instructions. The full skill ships later.
 
 ## What this server does now
 
-This build serves one tool, \`server_status\`, which reports that the server is running and
-which tools it serves. Call it when you want to confirm the server is up.
+This build serves two tools: \`server_status\` and \`decide\`.
+- \`server_status\`: reports that this server is running and which tools it serves.
+- \`decide\`: general typed decision tool that answers repeated decisions, trying fast-path
+  memory first and returning \`needs_ai\` for unknown items.
 
 ## What it does not do
 
-The tools in the specification (\`decide\`, \`submit_answers\`, \`page_check\`,
+The remaining tools in the specification (\`submit_answers\`, \`page_check\`,
 \`action_guard\`, \`feedback\`, \`get_pending_reviews\`, \`get_stats\`) are planned and are not
 implemented. Do not plan a task around them.
 

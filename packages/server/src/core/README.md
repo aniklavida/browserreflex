@@ -7,7 +7,8 @@ Decision logging, schema validation, memory lookup, and core routing logic.
 - Decision schema and validator (`schema.ts`): **implemented and tested**.
 - Exact-match memory (`memory.ts`): **implemented and tested**.
 - Decision logging and session tracking (`log.ts`): **implemented and tested**.
-- Routing and provider adapters: **planned**.
+- Decision router (`router.ts`): **implemented and tested** for exact-match memory and needs_ai fallback.
+- Pattern routing and provider adapters: **planned**.
 
 ## Invariants
 

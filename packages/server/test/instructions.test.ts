@@ -19,10 +19,11 @@ describe('server instructions', () => {
     expect(() => loadInstructions('   \n  ')).toThrow(/is empty/);
   });
 
-  it('names the one tool this build serves and does not promise the planned ones', () => {
+  it('names the tools this build serves and does not promise the planned ones', () => {
     const text = loadInstructions().replace(/\s+/g, ' ');
 
     expect(text).toContain('server_status');
+    expect(text).toContain('decide');
     expect(text).toMatch(/planned and are not implemented/);
     expect(text).toMatch(/never prevents an agent from acting/);
   });

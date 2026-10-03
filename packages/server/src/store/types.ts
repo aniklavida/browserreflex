@@ -66,6 +66,16 @@ export interface InsertDecision {
   created_at?: string;
 }
 
+export interface UpdateDecision {
+  answer?: string;
+  confidence?: number;
+  path?: DecisionPath;
+  pattern_id?: string | null;
+  latency_ms?: number;
+  is_safety?: number | boolean;
+  needs_review?: number | boolean;
+}
+
 export interface DecisionFilter {
   session_id?: string;
   domain?: string;
