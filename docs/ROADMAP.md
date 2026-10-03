@@ -9,7 +9,7 @@ Scaffold, local store, MCP server bootstrap, schema and validator, redaction, de
 
 ## Phase 1: browser MVP
 
-Pattern engine and pack format, the browser pack, `page_check`, `action_guard`, thresholds and routing, `feedback`, `get_pending_reviews`, `get_stats`, the skill and server instructions, key storage, the local REST API, the `init` command, the UI shell and the five v1 pages (setup wizard, dashboard, review queue, thresholds and safety, engines and keys), and the safety test suite. The UI cards start only after the visual direction is decided.
+Pattern engine and pack format, the browser pack, `page_check`, `action_guard`, thresholds and routing, `feedback`, `get_pending_reviews`, `get_stats`, the skill and server instructions, key storage, the local REST API, the `init` command, the UI shell and the five v1 pages (setup wizard, dashboard, review queue, thresholds and safety, engines and keys), and the safety test suite.
 **Gate 2:** an alpha runs on real browser tasks; the safety suite misses nothing; the fast-path share on day one and the token and time difference with and without BrowserReflex are measured and published, including if it is slower.
 
 ## Phase 2: learning

@@ -132,7 +132,7 @@ Served from the same process on `127.0.0.1`. English only. Dark by default with 
 
 v1 pages: setup wizard (agent, mode, packs, test decision), dashboard (fast-path share over time, items needing review, safety stops, path mix, drift alert), review queue (one item at a time, keyboard first), thresholds and safety, engines and keys. Every empty page says what will appear and what to do next. Confidence colours are reserved: green for automatic, amber for model, red for human or safety.
 
-The visual direction is **to be decided** before the UI is built; this document does not fix one.
+The visual direction (tokens, typography, components, pages and behaviour) is in [DESIGN.md](DESIGN.md).
 
 ## Data model
 
@@ -193,4 +193,3 @@ Targets, to be tuned on real data and reported honestly whether or not met:
 - Whether the page snapshot comes from the agent (proposed) or from a browser adapter.
 - Default model for BYOK mode.
 - Who the first alpha users are.
-- Visual direction for the local UI.

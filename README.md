@@ -36,6 +36,7 @@ BrowserReflex is a self-hosted MCP server with a small local web UI. It sits bes
 - [Specification](docs/SPEC.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Roadmap](docs/ROADMAP.md)
+- [Design](docs/DESIGN.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 
 ## Licence
