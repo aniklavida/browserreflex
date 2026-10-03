@@ -20,16 +20,18 @@ Status: placeholder instructions. The full skill ships later.
 
 ## What this server does now
 
-This build serves two tools: \`server_status\` and \`decide\`.
+This build serves three tools: \`server_status\`, \`decide\` and \`submit_answers\`.
 - \`server_status\`: reports that this server is running and which tools it serves.
 - \`decide\`: general typed decision tool that answers repeated decisions, trying fast-path
   memory first and returning \`needs_ai\` for unknown items.
+- \`submit_answers\`: receives the agent's typed answers for \`needs_ai\` items, validates them
+  against the schema, and stores them for future fast-path memory lookup.
 
 ## What it does not do
 
-The remaining tools in the specification (\`submit_answers\`, \`page_check\`,
-\`action_guard\`, \`feedback\`, \`get_pending_reviews\`, \`get_stats\`) are planned and are not
-implemented. Do not plan a task around them.
+The remaining tools in the specification (\`page_check\`, \`action_guard\`, \`feedback\`,
+\`get_pending_reviews\`, \`get_stats\`) are planned and are not implemented. Do not plan a task around
+them.
 
 ## Safety
 
