@@ -20,7 +20,7 @@ Status: placeholder instructions. The full skill ships later.
 
 ## What this server does now
 
-This build serves four tools: \`server_status\`, \`decide\`, \`submit_answers\` and \`feedback\`.
+This build serves six tools: \`server_status\`, \`decide\`, \`submit_answers\`, \`feedback\`, \`get_pending_reviews\` and \`get_stats\`.
 - \`server_status\`: reports that this server is running and which tools it serves.
 - \`decide\`: general typed decision tool that answers repeated decisions, trying fast-path
   memory first and returning \`needs_ai\` for unknown items.
@@ -32,12 +32,23 @@ This build serves four tools: \`server_status\`, \`decide\`, \`submit_answers\` 
   same input and question returns the corrected value, and a decision that came from a
   pattern gets one agree or disagree sample recorded against it. Call it whenever the
   answer turned out to be wrong, or when the user corrects it.
+- \`get_pending_reviews\`: lists decisions still waiting on a person, with redacted
+  context. Call it when you want to know what is outstanding, not to decide anything.
+- \`get_stats\`: reports decision counts, the fast-path share, latency percentiles and a
+  time-saved figure for a range.
 
 ## What it does not do
 
-The remaining tools in the specification (\`page_check\`, \`action_guard\`,
-\`get_pending_reviews\`, \`get_stats\`) are planned and are not implemented. Do not plan a task
-around them.
+The remaining tools in the specification (\`page_check\`, \`action_guard\`) are planned
+and are not implemented. Do not plan a task around them.
+
+## Reading the numbers
+
+\`get_stats\` counts what the decision log holds. Its fast-path share counts answers that
+came from memory, a pattern or a direct check; a model answer is never counted as fast.
+Its time-saved figure is an estimate from an assumed model-call time, not a measurement:
+this server does not run a model to compare against. Report it as an estimate or not at
+all.
 
 ## Safety
 

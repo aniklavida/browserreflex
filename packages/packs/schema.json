@@ -1,0 +1,194 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://browserreflex.dev/schemas/pack.json",
+  "title": "BrowserReflex Pattern Pack Manifest",
+  "description": "Validating schema for BrowserReflex YAML pattern packs and manifests.",
+  "type": "object",
+  "required": ["id", "name", "version", "rules"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$",
+      "minLength": 1,
+      "description": "Unique identifier for the pattern pack (lowercase alphanumeric, hyphens, underscores)."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable name of the pattern pack."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+.*$",
+      "description": "Semantic version string of the pattern pack."
+    },
+    "description": {
+      "type": "string",
+      "description": "Summary of the pattern pack's purpose and contents."
+    },
+    "source": {
+      "type": "string",
+      "enum": ["builtin", "community"],
+      "description": "Origin of the pattern pack: builtin or community."
+    },
+    "signature": {
+      "description": "Cryptographic signature placeholder (unverified/unsigned in this phase).",
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string" },
+            "algorithm": { "type": "string" },
+            "key_id": { "type": "string" },
+            "value": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        { "type": "null" }
+      ]
+    },
+    "rules": {
+      "type": "array",
+      "description": "List of pattern rules conforming to the engine Rule type.",
+      "items": {
+        "$ref": "#/definitions/Rule"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "definitions": {
+    "Rule": {
+      "type": "object",
+      "required": ["id", "matchers", "output"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique identifier for the rule within this pack."
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name describing what the rule matches."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed explanation of the rule's match condition and outcome."
+        },
+        "pack_id": {
+          "type": "string",
+          "description": "Optional pack ID override."
+        },
+        "safety": {
+          "type": "boolean",
+          "description": "Advisory safety flag. Safety rules take precedence over non-safety rules."
+        },
+        "is_safety": {
+          "type": ["boolean", "number"],
+          "description": "Alternative representation of the advisory safety flag."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Optional top-level confidence shorthand."
+        },
+        "specificity": {
+          "type": "number",
+          "description": "Optional explicit specificity score override."
+        },
+        "matchers": {
+          "$ref": "#/definitions/RuleMatchers"
+        },
+        "output": {
+          "$ref": "#/definitions/RuleOutput"
+        }
+      },
+      "additionalProperties": true
+    },
+    "RuleMatchers": {
+      "type": "object",
+      "description": "Conditions that must all match for the rule to fire.",
+      "minProperties": 1,
+      "properties": {
+        "text_any": {
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
+          "description": "Case-insensitive substring search across element text or page text."
+        },
+        "text_regex": {
+          "type": "string",
+          "description": "Regular expression matched against element text."
+        },
+        "role": {
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
+          "description": "Element accessibility role(s) to match."
+        },
+        "url_domain": {
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
+          "description": "Domain or hostname pattern(s) to match."
+        },
+        "url_path": {
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
+          "description": "URL pathname pattern(s) or glob to match."
+        },
+        "file_path_glob": {
+          "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
+          "description": "Glob pattern(s) for file paths."
+        },
+        "exit_code": {
+          "oneOf": [{ "type": "integer" }, { "type": "array", "items": { "type": "integer" } }],
+          "description": "Process exit code(s) to match."
+        },
+        "log_regex": {
+          "type": "string",
+          "description": "Regular expression matched against log excerpts."
+        },
+        "target_question_id": {
+          "type": "string",
+          "description": "Specific question ID targeted by this rule."
+        },
+        "question_id": {
+          "type": "string",
+          "description": "Alias for target_question_id."
+        }
+      },
+      "additionalProperties": true
+    },
+    "RuleOutput": {
+      "type": "object",
+      "required": ["value", "confidence"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["choice", "score", "check"],
+          "description": "Decision type: choice, score, or check."
+        },
+        "decision_type": {
+          "type": "string",
+          "enum": ["choice", "score", "check"],
+          "description": "Alias for type: choice, score, or check."
+        },
+        "value": {
+          "type": ["string", "number", "boolean"],
+          "description": "Typed answer value for the decision."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Confidence score between 0.0 and 1.0."
+        },
+        "distribution": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "description": "Probability distribution across choices."
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

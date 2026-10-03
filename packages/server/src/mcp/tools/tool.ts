@@ -21,6 +21,8 @@ export interface ToolContext {
   readonly sessionId?: string | undefined;
   /** Logs a decision with the active connection session pre-filled. */
   readonly logDecision?: ((params: LogDecisionParams) => Decision) | undefined;
+  /** Pattern engine instance for fast-path rule matching. */
+  readonly patternEngine?: import('../../patterns/engine.js').PatternEngine | undefined;
 }
 
 /**

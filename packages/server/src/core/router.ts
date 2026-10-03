@@ -28,6 +28,7 @@ import {
   validateQuestion,
 } from './schema.js';
 import { type PatternEngine, getDefaultPatternEngine } from '../patterns/index.js';
+import { getThresholdForType } from './thresholds.js';
 
 export interface AnswerOutput {
   id: string;
@@ -109,7 +110,7 @@ export type RouteQuestionResult =
 export interface RouteQuestionOptions {
   question: Question;
   input: unknown;
-  threshold: number;
+  threshold?: number | undefined;
   memory: Memory;
   store: DatabaseStore;
   session?: Session | string | null | undefined;
@@ -122,7 +123,7 @@ export interface RouteQuestionOptions {
  * Routes a single validated question through the decision path hierarchy.
  */
 export function routeQuestion(options: RouteQuestionOptions): RouteQuestionResult {
-  const { question, input, threshold, memory, store, session } = options;
+  const { question, input, memory, store, session } = options;
   const startTime = performance.now();
   const optionsList = question.type === 'choice' ? question.options : undefined;
   const memoryKey = computeMemoryKey(input, question, optionsList);
@@ -142,12 +143,20 @@ export function routeQuestion(options: RouteQuestionOptions): RouteQuestionResul
     }
   }
 
+  // Thresholds for this decision type read from settings repository without restart
+  const typeThresholds = getThresholdForType(store, question.type);
+
+  // Exact-match memory threshold: caller's explicit threshold takes precedence,
+  // keeping existing caller threshold behaviour intact and tested.
+  const memoryThreshold =
+    options.threshold !== undefined ? options.threshold : typeThresholds.auto_at_or_above;
+
   // 1. Fast path: exact-match memory
   const memoryHit = memory.lookup({
     input,
     question,
     inputHash: memoryKey,
-    threshold,
+    threshold: memoryThreshold,
     ...(optionsList !== undefined ? { options: optionsList } : {}),
   });
 
@@ -193,23 +202,144 @@ export function routeQuestion(options: RouteQuestionOptions): RouteQuestionResul
   }
 
   // 2. Patterns: matching rules and learned patterns
+  // Match candidate rules down to threshold 0 so the router can evaluate confidence
+  // against human_below and auto_at_or_above.
   const patternEngine = options.patternEngine ?? getDefaultPatternEngine();
   const patternHit = patternEngine.matchForQuestion(input, question, {
-    threshold,
+    threshold: 0,
     url,
     domain,
   });
 
   if (patternHit) {
     const latencyMs = Number((performance.now() - startTime).toFixed(3));
+    const confidence = patternHit.output.confidence;
+
+    // Safety rules requiring user confirmation (ask_user) are advisory safety stops.
+    // Invariant: Safety-flagged answers are never auto-allowed past a human gate:
+    // a safety rule's ask_user is not a confidence matter and is not affected by thresholds.
+    const isAskUser =
+      patternHit.output.value === 'ask_user' ||
+      (patternHit.output as unknown as Record<string, unknown>).ask_user === true;
+
+    if (patternHit.is_safety && isAskUser) {
+      const logged = logDecision({
+        question,
+        answer: {
+          value: patternHit.output.value,
+          distribution: patternHit.output.distribution,
+        },
+        path: 'pattern',
+        confidence,
+        latencyMs,
+        session,
+        store,
+        input,
+        inputHash: memoryKey,
+        url,
+        domain,
+        patternId: patternHit.pattern_id,
+        isSafety: true,
+        needsReview: true,
+      });
+
+      return {
+        status: 'needs_human',
+        needsHuman: {
+          id: question.id,
+          type: question.type,
+          decision_id: logged.id,
+          question,
+          reason: `Safety rule "${patternHit.pattern_id}" requires user confirmation (ask_user)`,
+        },
+        decision: logged,
+      };
+    }
+
+    // Threshold evaluation:
+    // - At or above auto_at_or_above: answered automatically (fast path).
+    // - Below human_below: routed to human review (needs_human).
+    // - Between human_below and auto_at_or_above: routed to AI for confirmation (needs_ai).
+    if (confidence >= typeThresholds.auto_at_or_above) {
+      const logged = logDecision({
+        question,
+        answer: {
+          value: patternHit.output.value,
+          distribution: patternHit.output.distribution,
+        },
+        path: 'pattern',
+        confidence,
+        latencyMs,
+        session,
+        store,
+        input,
+        inputHash: memoryKey,
+        url,
+        domain,
+        patternId: patternHit.pattern_id,
+        isSafety: patternHit.is_safety,
+      });
+
+      const answerOutput: AnswerOutput = {
+        id: question.id,
+        type: question.type,
+        value: patternHit.output.value,
+        confidence,
+        path: 'pattern',
+        pattern_id: patternHit.pattern_id,
+        latency_ms: latencyMs,
+        decision_id: logged.id,
+        ...(patternHit.output.distribution ? { distribution: patternHit.output.distribution } : {}),
+      };
+
+      return {
+        status: 'answered',
+        path: 'pattern',
+        answer: answerOutput,
+        decision: logged,
+      };
+    }
+
+    if (confidence < typeThresholds.human_below) {
+      const logged = logDecision({
+        question,
+        answer: {
+          value: patternHit.output.value,
+          distribution: patternHit.output.distribution,
+        },
+        path: 'pattern',
+        confidence,
+        latencyMs,
+        session,
+        store,
+        input,
+        inputHash: memoryKey,
+        url,
+        domain,
+        patternId: patternHit.pattern_id,
+        isSafety: patternHit.is_safety,
+        needsReview: true,
+      });
+
+      return {
+        status: 'needs_human',
+        needsHuman: {
+          id: question.id,
+          type: question.type,
+          decision_id: logged.id,
+          question,
+          reason: `Confidence ${confidence} is below human threshold ${typeThresholds.human_below}`,
+        },
+        decision: logged,
+      };
+    }
+
+    // Between human_below and auto_at_or_above: goes to needs_ai for confirmation
     const logged = logDecision({
       question,
-      answer: {
-        value: patternHit.output.value,
-        distribution: patternHit.output.distribution,
-      },
-      path: 'pattern',
-      confidence: patternHit.output.confidence,
+      answer: 'pending',
+      path: 'ai',
+      confidence,
       latencyMs,
       session,
       store,
@@ -221,22 +351,17 @@ export function routeQuestion(options: RouteQuestionOptions): RouteQuestionResul
       isSafety: patternHit.is_safety,
     });
 
-    const answerOutput: AnswerOutput = {
+    const needsAiItem: NeedsAiItem = {
       id: question.id,
       type: question.type,
-      value: patternHit.output.value,
-      confidence: patternHit.output.confidence,
-      path: 'pattern',
-      pattern_id: patternHit.pattern_id,
-      latency_ms: latencyMs,
+      text: question.text,
       decision_id: logged.id,
-      ...(patternHit.output.distribution ? { distribution: patternHit.output.distribution } : {}),
+      question,
     };
 
     return {
-      status: 'answered',
-      path: 'pattern',
-      answer: answerOutput,
+      status: 'needs_ai',
+      needsAi: needsAiItem,
       decision: logged,
     };
   }
@@ -320,7 +445,7 @@ export function routeBatch(options: RouteBatchOptions): RouteBatchResult {
     }
   }
 
-  const threshold = options.threshold !== undefined ? options.threshold : 0.8;
+  const threshold = options.threshold;
 
   for (const rawQ of options.questions) {
     const validation = validateQuestion(rawQ);

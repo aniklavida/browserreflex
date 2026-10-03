@@ -17,6 +17,7 @@ export const tool: ToolDefinition = {
       store: context.store,
       session: context.session,
       sessionId: context.sessionId,
+      patternEngine: context.patternEngine,
     });
 
     const total =
