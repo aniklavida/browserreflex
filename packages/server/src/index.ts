@@ -25,6 +25,36 @@ export {
   type RedactionResult,
   type RedactionRuleId,
 } from './security/redact.js';
+export {
+  DATA_KEY_FILE_NAME,
+  HIDDEN_SEGMENT,
+  KEYCHAIN_BACKEND_STATUS,
+  KEYCHAIN_SERVICE,
+  KEYS_FILE_NAME,
+  KEY_STORE_STATUS,
+  KeyStoreError,
+  MASK_PREFIX_LENGTH,
+  MASK_SUFFIX_LENGTH,
+  MAX_KEY_LENGTH,
+  MIN_PARTIAL_MASK_LENGTH,
+  createFileKeyStore,
+  createKeychainKeyStore,
+  getDefaultKeysDirectory,
+  isKeychainAvailable,
+  maskKeyValue,
+  resolveKeyStore,
+  summarizeKey,
+  type FileKeyStoreOptions,
+  type KeyStore,
+  type KeyStoreBackend,
+  type KeyStoreErrorCode,
+  type KeySummary,
+  type KeychainEntry,
+  type KeychainEntryFactory,
+  type KeychainKeyStoreOptions,
+  type ResolveKeyStoreOptions,
+  type ResolvedKeyStore,
+} from './security/keys.js';
 export * from './core/schema.js';
 export * from './core/memory.js';
 export * from './core/log.js';
