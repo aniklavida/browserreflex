@@ -3,11 +3,11 @@
  *
  * Routing order:
  * 1. Memory: exact-match lookup on normalized input, question and options.
- * 2. Patterns: matching rules and learned patterns (planned for Phase 1).
+ * 2. Patterns: matching rules and learned patterns with microsecond evaluation.
  * 3. Direct checks: deterministic page checks (planned for Phase 1).
  * 4. Needs AI / Slow path: returns needs_ai entry with a pending decision_id.
  *
- * Status: **implemented and tested** for exact-match memory and needs_ai fallback.
+ * Status: **implemented and tested** for exact-match memory, pattern matching, and needs_ai fallback.
  *
  * Invariants:
  * - A decision record that misdescribes itself is worse than no record:
@@ -27,6 +27,7 @@ import {
   SCHEMA_VIOLATION,
   validateQuestion,
 } from './schema.js';
+import { type PatternEngine, getDefaultPatternEngine } from '../patterns/index.js';
 
 export interface AnswerOutput {
   id: string;
@@ -76,6 +77,7 @@ export interface RouteBatchOptions {
   session?: Session | string | null | undefined;
   url?: string | null | undefined;
   domain?: string | null | undefined;
+  patternEngine?: PatternEngine | undefined;
 }
 
 export interface RouteBatchResult {
@@ -89,7 +91,7 @@ export interface RouteBatchResult {
 export type RouteQuestionResult =
   | {
       status: 'answered';
-      path: 'memory';
+      path: 'memory' | 'pattern';
       answer: AnswerOutput;
       decision: Decision;
     }
@@ -113,6 +115,7 @@ export interface RouteQuestionOptions {
   session?: Session | string | null | undefined;
   url?: string | null | undefined;
   domain?: string | null | undefined;
+  patternEngine?: PatternEngine | undefined;
 }
 
 /**
@@ -189,7 +192,55 @@ export function routeQuestion(options: RouteQuestionOptions): RouteQuestionResul
     };
   }
 
-  // 2. Patterns: planned for Phase 1. Rules and learned patterns slot here.
+  // 2. Patterns: matching rules and learned patterns
+  const patternEngine = options.patternEngine ?? getDefaultPatternEngine();
+  const patternHit = patternEngine.matchForQuestion(input, question, {
+    threshold,
+    url,
+    domain,
+  });
+
+  if (patternHit) {
+    const latencyMs = Number((performance.now() - startTime).toFixed(3));
+    const logged = logDecision({
+      question,
+      answer: {
+        value: patternHit.output.value,
+        distribution: patternHit.output.distribution,
+      },
+      path: 'pattern',
+      confidence: patternHit.output.confidence,
+      latencyMs,
+      session,
+      store,
+      input,
+      inputHash: memoryKey,
+      url,
+      domain,
+      patternId: patternHit.pattern_id,
+      isSafety: patternHit.is_safety,
+    });
+
+    const answerOutput: AnswerOutput = {
+      id: question.id,
+      type: question.type,
+      value: patternHit.output.value,
+      confidence: patternHit.output.confidence,
+      path: 'pattern',
+      pattern_id: patternHit.pattern_id,
+      latency_ms: latencyMs,
+      decision_id: logged.id,
+      ...(patternHit.output.distribution ? { distribution: patternHit.output.distribution } : {}),
+    };
+
+    return {
+      status: 'answered',
+      path: 'pattern',
+      answer: answerOutput,
+      decision: logged,
+    };
+  }
+
   // 3. Direct checks: planned for Phase 1. Snapshot evaluations slot here.
 
   // 4. Slow path / Chat mode: unknown items return in needs_ai with pending decision_id
@@ -297,6 +348,7 @@ export function routeBatch(options: RouteBatchOptions): RouteBatchResult {
       session: options.session,
       url,
       domain,
+      patternEngine: options.patternEngine,
     });
 
     if (routed.status === 'answered') {

@@ -11,7 +11,8 @@ The MCP server: stdio transport, the tool registry and the `instructions` field.
 | `instructions` field served from placeholder text in `skill/` | **implemented and tested** |
 | `server_status` tool | **implemented and tested** |
 | HTTP transport | **planned** |
-| The decision tools (`decide`, `submit_answers`, `page_check`, `action_guard`, `feedback`, `get_pending_reviews`, `get_stats`) | **planned** |
+| The decision tools `decide` and `feedback` | **implemented and tested** |
+| The decision tools `submit_answers`, `page_check`, `action_guard`, `get_pending_reviews`, `get_stats` | **planned** |
 | The full skill text | **planned** (Phase 1) |
 
 The safety check is advisory. Nothing in this server prevents an agent from acting; it
