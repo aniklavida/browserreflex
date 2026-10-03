@@ -14,6 +14,9 @@ Status: **implemented and tested**. All direct dependencies are recorded with th
 These ship with `@browserreflex/server` and are installed for anyone who runs the MCP server. `pnpm check-licenses` walks the resolved production tree and reports the licence of each package; it was run on 2026-10-04 and passed.
 
 Redaction (`packages/server/src/security/redact.ts`, 2026-10-04) uses only the Node standard library (`node:crypto`), so it added no dependency to this table.
+Pattern engine core (`packages/server/src/patterns/*`, 2026-10-04) uses only the Node standard library and internal helpers, adding no dependency to this table.
+
+The `feedback` tool (`packages/server/src/tools/feedback.ts`, 2026-10-04) reuses the store repositories, the memory module and `redact`, and adds no dependency to this table.
 
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|

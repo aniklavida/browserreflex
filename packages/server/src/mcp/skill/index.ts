@@ -20,11 +20,18 @@ Status: placeholder instructions. The full skill ships later.
 
 ## What this server does now
 
-This build serves four tools: \`server_status\`, \`decide\`, \`get_pending_reviews\` and
-\`get_stats\`.
+This build serves six tools: \`server_status\`, \`decide\`, \`submit_answers\`, \`feedback\`, \`get_pending_reviews\` and \`get_stats\`.
 - \`server_status\`: reports that this server is running and which tools it serves.
 - \`decide\`: general typed decision tool that answers repeated decisions, trying fast-path
   memory first and returning \`needs_ai\` for unknown items.
+- \`submit_answers\`: receives the agent's typed answers for \`needs_ai\` items, validates them
+  against the schema, and stores them for future fast-path memory lookup.
+- \`feedback\`: records a correction to a decision this server made, from the user or from
+  the agent. Pass the \`decision_id\` from the earlier call and the value that is actually
+  correct. The correction confirms the decision in memory, so the next \`decide\` for the
+  same input and question returns the corrected value, and a decision that came from a
+  pattern gets one agree or disagree sample recorded against it. Call it whenever the
+  answer turned out to be wrong, or when the user corrects it.
 - \`get_pending_reviews\`: lists decisions still waiting on a person, with redacted
   context. Call it when you want to know what is outstanding, not to decide anything.
 - \`get_stats\`: reports decision counts, the fast-path share, latency percentiles and a
@@ -32,9 +39,8 @@ This build serves four tools: \`server_status\`, \`decide\`, \`get_pending_revie
 
 ## What it does not do
 
-The remaining tools in the specification (\`submit_answers\`, \`page_check\`,
-\`action_guard\`, \`feedback\`) are planned and are not implemented. Do not plan a task
-around them.
+The remaining tools in the specification (\`page_check\`, \`action_guard\`) are planned
+and are not implemented. Do not plan a task around them.
 
 ## Reading the numbers
 
@@ -48,5 +54,6 @@ all.
 
 The safety check is advisory. It reports a request for the user and never prevents an
 agent from acting. Real enforcement belongs in the agent host's own permission or hook
-system; this server does not replace it.
+system; this server does not replace it. \`feedback\` records a correction and changes no
+rule.
 `;

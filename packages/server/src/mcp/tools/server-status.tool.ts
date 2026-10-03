@@ -15,8 +15,8 @@ export const tool: ToolDefinition = {
   title: 'BrowserReflex server status',
   description:
     'Reports that this BrowserReflex MCP server is running, which tools this build serves, ' +
-    'and which specification tools are still planned. This build serves no decision tools: ' +
-    'decide, submit_answers, page_check, action_guard, feedback, get_pending_reviews and ' +
+    'and which specification tools are still planned. This build serves the decision tools ' +
+    'decide and feedback; submit_answers, page_check, action_guard, get_pending_reviews and ' +
     'get_stats are planned and will not answer. The safety check is advisory: it reports a ' +
     'request to the user and does not stop an agent from acting.',
   inputSchema: {},

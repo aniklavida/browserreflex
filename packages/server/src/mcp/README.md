@@ -10,9 +10,9 @@ The MCP server: stdio transport, the tool registry and the `instructions` field.
 | Tool registry: one `*.tool.ts` file per tool, discovered by directory listing | **implemented and tested** |
 | `instructions` field served from placeholder text in `skill/` | **implemented and tested** |
 | `server_status` tool | **implemented and tested** |
-| `decide`, `get_pending_reviews`, `get_stats` tools | **implemented and tested** |
+| `decide`, `submit_answers`, `feedback`, `get_pending_reviews`, `get_stats` tools | **implemented and tested** |
 | HTTP transport | **planned** |
-| The remaining decision tools (`submit_answers`, `page_check`, `action_guard`, `feedback`) | **planned** |
+| The remaining decision tools (`page_check`, `action_guard`) | **planned** |
 | The full skill text | **planned** (Phase 1) |
 
 The safety check is advisory. Nothing in this server prevents an agent from acting; it
@@ -61,5 +61,6 @@ the served instructions with the shipped text, checks the handshake identity aga
 discovery and the refusal cases with fixture tool files.
 
 Each decision tool has its own file, and each of those files also drives the tool over a
-real MCP client against a temporary database: `decide-tool.test.ts`, `reviews-tool.test.ts`
+real MCP client against a temporary database: `decide-tool.test.ts`,
+`submit-answers-tool.test.ts`, `feedback-tool.test.ts`, `reviews-tool.test.ts`
 (`get_pending_reviews`) and `stats-tool.test.ts` (`get_stats`).

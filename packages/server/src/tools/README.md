@@ -8,9 +8,11 @@ MCP tool logic, one module per tool under `src/tools/`. The wire definitions liv
 | Tool | State | Tests |
 |---|---|---|
 | `decide` | **implemented and tested** | `test/decide-tool.test.ts` |
+| `submit_answers` | **implemented and tested** | `test/submit-answers-tool.test.ts` |
+| `feedback` | **implemented and tested** | `test/feedback-tool.test.ts` |
 | `get_pending_reviews` | **implemented and tested** | `test/reviews-tool.test.ts` |
 | `get_stats` | **implemented and tested** | `test/stats-tool.test.ts` |
-| `submit_answers`, `page_check`, `action_guard`, `feedback` | **planned** | none; nothing is served |
+| `page_check`, `action_guard` | **planned** | none; nothing is served |
 
 ## `get_stats`
 
