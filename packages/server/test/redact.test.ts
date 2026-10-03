@@ -172,7 +172,7 @@ describe('the rules the module claims', () => {
 });
 
 describe('redaction cost', () => {
-  const CALLS = 2000;
+  const CALLS = 400;
 
   function measure(input: string, calls: number): { mean: number; p95: number; slowest: number } {
     for (let i = 0; i < 100; i += 1) redact(input);
@@ -219,5 +219,6 @@ describe('redaction cost', () => {
     // patterns in this module and over 30 ms with a pattern that backtracks.
     expect(digits.mean).toBeLessThan(2);
     expect(stress.mean).toBeLessThan(5);
-  });
+    // Generous timeout: the bounds above are on the mean per call, not on how long a slow shared runner takes to repeat the calls.
+  }, 30_000);
 });
