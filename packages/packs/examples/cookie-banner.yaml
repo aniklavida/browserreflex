@@ -1,0 +1,19 @@
+id: example-cookie-pack
+name: Example Cookie Consent Pack
+version: 1.0.0
+description: A tiny valid example pattern pack used for testing the pack format and loader.
+source: builtin
+rules:
+  - id: example-cookie-dismiss
+    name: Dismiss cookie consent banner
+    description: Matches standard accept buttons on cookie consent banners
+    safety: false
+    matchers:
+      text_any:
+        - accept cookies
+        - agree and continue
+      role: button
+    output:
+      type: check
+      value: true
+      confidence: 0.95

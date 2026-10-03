@@ -10,3 +10,4 @@ export * from './types.js';
 export * from './specificity.js';
 export * from './matchers.js';
 export * from './engine.js';
+export * from './loader.js';
