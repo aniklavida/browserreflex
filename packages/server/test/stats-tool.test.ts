@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
@@ -209,6 +209,21 @@ describe('get_stats tool', () => {
 
     expect(() => executeGetStats({ range: '90d' }, { store, now: NOW })).toThrow(/90d/);
     expect(() => executeGetStats({ filter: 'coding' }, { store, now: NOW })).toThrow(/coding/);
+  });
+
+  it('documents the estimate assumption and the constant it uses in the tools README', () => {
+    // Whitespace collapsed, because the formatter wraps prose and a phrase can
+    // straddle a line break.
+    const readme = readFileSync(new URL('../src/tools/README.md', import.meta.url), 'utf8').replace(
+      /\s+/g,
+      ' ',
+    );
+
+    // A reader of the number has to be able to find what it assumed, and find it
+    // described as an assumption, without reading the source.
+    expect(readme).toContain('ASSUMED_MODEL_CALL_SECONDS_PER_FAST_ANSWER');
+    expect(readme).toContain(`currently set to \`${ASSUMED_MODEL_CALL_SECONDS_PER_FAST_ANSWER}\``);
+    expect(readme).toContain('not a measurement');
   });
 
   it('produces output that matches its declared schema', () => {
