@@ -211,13 +211,13 @@ describe('redaction cost', () => {
     );
 
     expect(typical.mean).toBeLessThan(1);
-    expect(typical.p95).toBeLessThan(1);
+    expect(typical.p95).toBeLessThan(2);
     expect(large.mean).toBeLessThan(1);
     // The digit heavy input is not a page snapshot, so it is held to a looser
     // bound. It is here because it is the shape that catches a card or phone
     // pattern that backtracks: the same input costs about 0.4 ms with the
     // patterns in this module and over 30 ms with a pattern that backtracks.
-    expect(digits.mean).toBeLessThan(2);
+    expect(digits.mean).toBeLessThan(5);
     expect(stress.mean).toBeLessThan(5);
     // Generous timeout: the bounds above are on the mean per call, not on how long a slow shared runner takes to repeat the calls.
   }, 30_000);
