@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import _Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
 import { type Document, LineCounter, isMap, isPair, isScalar, isSeq, parseDocument } from 'yaml';
 import type { DecisionType } from '../core/schema.js';
+import type { DatabaseStore } from '../store/index.js';
 import type { PatternEngine } from './engine.js';
 import type { Rule, RuleMatchers, RuleOutput } from './types.js';
 
@@ -630,4 +631,77 @@ export function loadPacksIntoEngine(
     rules: allRules,
     errors: allErrors,
   };
+}
+
+/**
+ * Loads active (promoted) learned patterns from the store into a PatternEngine instance.
+ *
+ * Invariants:
+ * - A promoted pattern NEVER carries the safety flag and can never override a safety rule:
+ *   safety and is_safety are forced to false / 0 on all loaded learned patterns.
+ * - A learned pattern's output confidence is capped by its measured agreement:
+ *   confidence = Math.min(rule.output.confidence, measured_agreement).
+ */
+export function loadActivePatternsIntoEngine(engine: PatternEngine, store: DatabaseStore): Rule[] {
+  const activePatterns = store.patterns.list({ status: 'active' });
+  const loadedRules: Rule[] = [];
+
+  for (const pattern of activePatterns) {
+    let rawRule: unknown;
+    try {
+      rawRule = JSON.parse(pattern.rules);
+    } catch {
+      continue;
+    }
+
+    if (!rawRule || typeof rawRule !== 'object') {
+      continue;
+    }
+
+    const ruleObj = rawRule as Record<string, unknown>;
+    const rawOutput = (ruleObj.output ?? {}) as Record<string, unknown>;
+    const decisionType = (rawOutput.type ?? rawOutput.decision_type ?? pattern.decision_type) as
+      DecisionType | undefined;
+
+    let statedConfidence =
+      typeof rawOutput.confidence === 'number' ? rawOutput.confidence : (pattern.confidence ?? 1.0);
+
+    // Invariant: A learned pattern's own output confidence must be capped by its measured agreement
+    const stats = store.patternStats.getById(pattern.id);
+    if (stats && stats.sample_count > 0) {
+      const agreement = stats.agreed_count / stats.sample_count;
+      statedConfidence = Math.min(statedConfidence, agreement);
+    }
+
+    const output: RuleOutput = {
+      value: rawOutput.value as string | number | boolean,
+      confidence: Number(statedConfidence.toFixed(4)),
+      type: decisionType,
+      decision_type: decisionType,
+      distribution:
+        rawOutput.distribution && typeof rawOutput.distribution === 'object'
+          ? (rawOutput.distribution as Record<string, number>)
+          : undefined,
+    };
+
+    const rule: Rule = {
+      id: pattern.id,
+      name: pattern.name ?? (typeof ruleObj.name === 'string' ? ruleObj.name : undefined),
+      description: typeof ruleObj.description === 'string' ? ruleObj.description : undefined,
+      pack_id:
+        pattern.pack_id ?? (typeof ruleObj.pack_id === 'string' ? ruleObj.pack_id : undefined),
+      // Invariant: Promoted pattern NEVER carries safety flag
+      safety: false,
+      is_safety: false,
+      status: 'active',
+      matchers: (ruleObj.matchers ?? {}) as RuleMatchers,
+      output,
+      specificity: typeof ruleObj.specificity === 'number' ? ruleObj.specificity : undefined,
+    };
+
+    engine.addRule(rule);
+    loadedRules.push(rule);
+  }
+
+  return loadedRules;
 }

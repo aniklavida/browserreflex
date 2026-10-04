@@ -293,3 +293,33 @@ export interface ShadowSampleFilter {
   limit?: number;
   offset?: number;
 }
+
+export interface PromotionEvent {
+  id: string;
+  pattern_id: string;
+  sample_count: number;
+  agreement: number;
+  threshold_samples: number;
+  threshold_agreement: number;
+  thresholds: string;
+  is_safety: number;
+  created_at: string;
+}
+
+export interface InsertPromotionEvent {
+  id?: string;
+  pattern_id: string;
+  sample_count: number;
+  agreement: number;
+  threshold_samples: number;
+  threshold_agreement: number;
+  thresholds: string | Record<string, unknown>;
+  is_safety?: number | boolean;
+  created_at?: string;
+}
+
+export interface PromotionEventFilter {
+  pattern_id?: string;
+  limit?: number;
+  offset?: number;
+}
