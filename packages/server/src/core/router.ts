@@ -7,7 +7,8 @@
  * 3. Direct checks: deterministic page checks (planned for Phase 1).
  * 4. Needs AI / Slow path: returns needs_ai entry with a pending decision_id.
  *
- * Status: **implemented and tested** for exact-match memory, pattern matching, and needs_ai fallback.
+ * Status: **implemented and tested** for exact-match memory, pattern matching, pattern-path
+ * confidence calibration, and needs_ai fallback.
  *
  * Invariants:
  * - A decision record that misdescribes itself is worse than no record:
@@ -29,6 +30,7 @@ import {
 } from './schema.js';
 import { type PatternEngine, getDefaultPatternEngine } from '../patterns/index.js';
 import { getThresholdForType } from './thresholds.js';
+import { type CalibrationScope, calibrate, readCalibrationHistory } from '../learning/calibrate.js';
 
 export interface AnswerOutput {
   id: string;
@@ -212,8 +214,30 @@ export function routeQuestion(options: RouteQuestionOptions): RouteQuestionResul
   });
 
   if (patternHit) {
+    // Confidence calibration (Phase 2). A pattern's stated confidence is read against the
+    // feedback-confirmed history of this rule before the router trusts it, so a rule that
+    // says 90% and is right 30% of the time stops being answered automatically. Only the
+    // confidence moves: the value, the path and the pattern id are the rule's own. A safety
+    // scope is not calibrated, and the reason is in the header of learning/calibrate.ts.
+    //
+    // The decision row stores the calibrated confidence, because that is the confidence the
+    // answer carried and the confidence the threshold below was read against. The stated
+    // confidence belongs to the rule that matched, which the answer names in pattern_id.
+    //
+    // Read before the latency is taken, so latency_ms covers the whole routing work and not
+    // the part of it that happened first.
+    const calibrationScope: CalibrationScope = {
+      pattern_id: patternHit.pattern_id,
+      decision_type: question.type,
+      safety: patternHit.is_safety,
+    };
+    const confidence = calibrate(
+      patternHit.output.confidence,
+      readCalibrationHistory(store, { scope: calibrationScope }),
+      { scope: calibrationScope },
+    );
+
     const latencyMs = Number((performance.now() - startTime).toFixed(3));
-    const confidence = patternHit.output.confidence;
 
     // Safety rules requiring user confirmation (ask_user) are advisory safety stops.
     // Invariant: Safety-flagged answers are never auto-allowed past a human gate:
