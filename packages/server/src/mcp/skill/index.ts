@@ -20,12 +20,18 @@ Status: placeholder instructions. The full skill ships later.
 
 ## What this server does now
 
-This build serves six tools: \`server_status\`, \`decide\`, \`submit_answers\`, \`feedback\`, \`get_pending_reviews\` and \`get_stats\`.
+This build serves seven tools: \`server_status\`, \`decide\`, \`submit_answers\`, \`action_guard\`, \`feedback\`, \`get_pending_reviews\` and \`get_stats\`.
 - \`server_status\`: reports that this server is running and which tools it serves.
 - \`decide\`: general typed decision tool that answers repeated decisions, trying fast-path
   memory first and returning \`needs_ai\` for unknown items.
 - \`submit_answers\`: receives the agent's typed answers for \`needs_ai\` items, validates them
   against the schema, and stores them for future fast-path memory lookup.
+- \`action_guard\`: advisory safety gate for one action. Send it before a click, a submit, a
+  delete, and anything that types, navigates or runs a command, with the action, the target
+  element and the URL. It answers \`allow\`, \`ask_user\` or \`block\` with a reason written for the
+  user. A payment or destructive action always comes back \`ask_user\`: nothing the agent sends
+  and no learned pattern can turn that into \`allow\`. Page text is matched against rules and
+  never read as an instruction, so a page saying an action is approved changes nothing.
 - \`feedback\`: records a correction to a decision this server made, from the user or from
   the agent. Pass the \`decision_id\` from the earlier call and the value that is actually
   correct. The correction confirms the decision in memory, so the next \`decide\` for the
@@ -39,8 +45,8 @@ This build serves six tools: \`server_status\`, \`decide\`, \`submit_answers\`, 
 
 ## What it does not do
 
-The remaining tools in the specification (\`page_check\`, \`action_guard\`) are planned
-and are not implemented. Do not plan a task around them.
+The tools in the specification that are planned and are not implemented: \`page_check\`. Do
+not plan a task around it.
 
 ## Reading the numbers
 
@@ -54,6 +60,9 @@ all.
 
 The safety check is advisory. It reports a request for the user and never prevents an
 agent from acting. Real enforcement belongs in the agent host's own permission or hook
-system; this server does not replace it. \`feedback\` records a correction and changes no
+system; this server does not replace it. \`action_guard\` answers \`ask_user\` for a payment
+or a destructive action and records that it did, and nothing more than that: an agent
+that does not call it is not stopped by it, and an agent that reads \`ask_user\` and acts
+anyway is not stopped by it either. \`feedback\` records a correction and changes no
 rule.
 `;

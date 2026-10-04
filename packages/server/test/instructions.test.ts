@@ -25,7 +25,25 @@ describe('server instructions', () => {
     expect(text).toContain('server_status');
     expect(text).toContain('decide');
     expect(text).toContain('submit_answers');
+    expect(text).toContain('action_guard');
     expect(text).toMatch(/planned and are not implemented/);
     expect(text).toMatch(/never prevents an agent from acting/);
+  });
+
+  it('does not tell the agent to call a tool this build does not serve', () => {
+    const text = loadInstructions().replace(/\s+/g, ' ');
+
+    expect(text).toContain('page_check');
+    expect(text).toMatch(/`page_check`\. Do not plan a task around it/);
+    expect(text).not.toMatch(/`action_guard` are planned/);
+  });
+
+  it('says what action_guard does and does not do, in the text an agent reads', () => {
+    const text = loadInstructions().replace(/\s+/g, ' ');
+
+    expect(text).toMatch(/action_guard.*advisory/);
+    expect(text).toMatch(/payment or destructive action always comes back `ask_user`/);
+    expect(text).toMatch(/never read as an instruction/);
+    expect(text).toMatch(/an agent that does not call it is not stopped by it/);
   });
 });
