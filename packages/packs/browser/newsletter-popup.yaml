@@ -1,0 +1,78 @@
+id: browser-newsletter-popup
+name: Browser Newsletter And Promo Popup Rules
+version: 1.0.0
+description: >-
+  Classifies a newsletter or promotional surface on a page as popup kind promo.
+  Every rule answers the popup kind choice question with the option ids none,
+  cookie_banner and promo. Signals are the accessible text of the offer
+  container and of its subscribe and call-to-action controls, in English and in
+  Bangla.
+source: builtin
+rules:
+  - id: browser.popup.promo.offer_container
+    name: Offer container text
+    description: >-
+      A container role element whose accessible text carries a time limited or
+      membership offer. Scoped to container roles so that article text about
+      offers does not read as a popup.
+    safety: false
+    matchers:
+      target_question_id: browser.check.popup_kind
+      role:
+        - dialog
+        - alertdialog
+        - region
+        - complementary
+      text_regex: '\blimited[- ]time (offer|discount|sale)\b|\bspecial offer\b|\bexclusive (offer|deal)\b|\bsign up (and|to) save\b|\b\d+ ?% off (your |the )?first order\b|\bwe miss you\b|\btodays deal\b|\bflash sale\b|\bfirst order discount\b'
+    output:
+      type: choice
+      value: promo
+      confidence: 0.88
+      distribution:
+        none: 0.04
+        cookie_banner: 0.03
+        promo: 0.93
+
+  - id: browser.popup.promo.subscribe_control
+    name: Subscribe or offer call to action
+    description: >-
+      An interactive control whose text asks for a subscription or offers a
+      discount, in English or in Bangla.
+    safety: false
+    matchers:
+      target_question_id: browser.check.popup_kind
+      role:
+        - button
+        - link
+      text_regex: '\bsubscribe( now)?\b|\bsign up\b|\bjoin( the)? (newsletter|list|mailing list)\b|\bget (the |our )?discount\b|\bgrab (the |your )?(deal|offer|discount)\b|\bclaim (your |the )?(offer|deal|discount)\b|সাবস্ক্রাইব|ছাড় পান|অফার নিন|নিবন্ধন করুন'
+    output:
+      type: choice
+      value: promo
+      confidence: 0.86
+      distribution:
+        none: 0.06
+        cookie_banner: 0.03
+        promo: 0.91
+
+  - id: browser.popup.promo.bangla_offer_container
+    name: Bangla offer container text
+    description: >-
+      A container role element whose accessible text carries a Bangla offer
+      (shimito somoyer offer, bishesh chhad).
+    safety: false
+    matchers:
+      target_question_id: browser.check.popup_kind
+      role:
+        - dialog
+        - alertdialog
+        - region
+        - complementary
+      text_regex: 'সীমিত সময়ের অফার|বিশেষ ছাড়|প্রথম অর্ডারে|ছাড়ের অফার'
+    output:
+      type: choice
+      value: promo
+      confidence: 0.86
+      distribution:
+        none: 0.05
+        cookie_banner: 0.03
+        promo: 0.92

@@ -1,0 +1,19 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: destructive
+expected:
+  no_match: true
+note: >-
+  An article about clearing caches is not a deletion. The rules are scoped to
+  interactive roles, so heading and paragraph text that says delete is ignored.
+snapshot:
+  url: https://support.example/kb/how-to-clear-browser-caches
+  elements:
+    - role: heading
+      text: How to delete your browser cache safely
+    - role: paragraph
+      text: You can delete cached files from the settings page of any browser.
+    - role: paragraph
+      text: Clearing the cache does not remove your bookmarks.
+    - role: link
+      text: Read the guide

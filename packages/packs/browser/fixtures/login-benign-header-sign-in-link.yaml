@@ -1,0 +1,21 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: login_wall
+expected:
+  no_match: true
+note: >-
+  A header account link is not a login wall. The link text carries no gate
+  wording and the URL is not an authentication path, so no rule fires.
+snapshot:
+  url: https://shop.example/product/9f2
+  elements:
+    - role: banner
+      text: Corner shop
+    - role: link
+      text: Sign in
+    - role: link
+      text: Help
+    - role: button
+      text: Add to cart
+    - role: link
+      text: Order history

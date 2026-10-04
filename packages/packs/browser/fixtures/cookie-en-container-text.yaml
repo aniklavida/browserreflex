@@ -1,0 +1,16 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: cookie_banner
+expected:
+  value: cookie_banner
+snapshot:
+  url: https://shop.example/product/9f2
+  elements:
+    - role: dialog
+      text: We value your privacy. We use cookies and similar technologies to run this site.
+    - role: button
+      text: Okay
+    - role: button
+      text: Decline
+    - role: link
+      text: Customise cookies

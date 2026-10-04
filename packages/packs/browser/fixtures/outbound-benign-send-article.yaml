@@ -1,0 +1,19 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: outbound
+expected:
+  no_match: true
+note: >-
+  An article about sending mail is not an outbound action. Nothing on the page
+  is an interactive send control.
+snapshot:
+  url: https://support.example/kb/how-to-send-email-from-your-phone
+  elements:
+    - role: heading
+      text: How to send an email from your phone
+    - role: paragraph
+      text: Every mail app has a compose screen with a send button.
+    - role: paragraph
+      text: Publishing your draft later keeps a copy in the outbox.
+    - role: link
+      text: Read the guide
