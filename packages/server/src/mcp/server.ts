@@ -10,6 +10,7 @@ import {
   type PackValidationError,
   type PatternEngine,
   createPatternEngine,
+  loadActivePatternsIntoEngine,
   loadPackFiles,
   loadPacksFromDirectory,
 } from '../patterns/index.js';
@@ -116,6 +117,9 @@ export async function createMcpServer(
       process.stderr.write(`[browserreflex pack warning] ${err.formatted}\n`);
     }
   }
+
+  // Load promoted (active) learned patterns from the store into the pattern engine
+  loadActivePatternsIntoEngine(patternEngine, store);
 
   const toolNames = definitions.map((definition) => definition.name);
   const baseContext: ToolContext = {

@@ -87,7 +87,7 @@ rules:
         - button
         - link
         - menuitem
-      text_regex: '\b(delete|remove|clear) (all|every|my) (data|history|files|items|orders|photos|messages|followings?|bookmarks|search history)\b|\bdelete (my )?(data|history|files|photos|account data)\b'
+      text_regex: '\b(delete|remove|clear) (all|every|my) (data|history|files|items|orders|photos|messages|followings?|bookmarks|search history)\b|\b(delete|clear) (my )?(data|history|files|photos|account data)\b'
     output:
       type: choice
       value: ask_user

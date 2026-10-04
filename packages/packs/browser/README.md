@@ -49,4 +49,4 @@ The choice rules carry a `distribution` over the option ids above, because the e
 
 ## Fixtures
 
-65 synthetic fixtures live in `fixtures/`; see [fixtures/README.md](fixtures/README.md). They are hand written to resemble real accessibility trees. None of them is a capture of a real site.
+67 synthetic fixtures live in `fixtures/`; see [fixtures/README.md](fixtures/README.md). They are hand written to resemble real accessibility trees. None of them is a capture of a real site.

@@ -567,7 +567,12 @@ function parseAccessibilityTree(
       dropped += 1;
       continue;
     }
-    elements.push({ role: match[2] ?? null, text: unquote(match[3] ?? match[4] ?? '') });
+    elements.push({
+      role: match[2] ?? null,
+      text: unquote(match[3] ?? match[4] ?? '')
+        .trim()
+        .replace(/\s+/g, ' '),
+    });
   }
 
   return { elements, ignored, dropped };
@@ -590,7 +595,8 @@ function elementFrom(raw: unknown): PageElement | null {
   if (role === null && text === null) {
     return null;
   }
-  return { role, text: text ?? '' };
+  const cleanText = text === null ? '' : text.trim().replace(/\s+/g, ' ');
+  return { role, text: cleanText };
 }
 
 function readPageInput(args: Record<string, unknown>, bounds: typeof PAGE_CHECK_BOUNDS): PageInput {
