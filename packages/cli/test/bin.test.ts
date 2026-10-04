@@ -158,7 +158,20 @@ describe('the browserreflex-mcp executable', () => {
     expect(result.code).toBe(0);
     expect(result.stdout).toContain('browserreflex-mcp init');
     expect(result.stdout).toContain('browserreflex-mcp serve');
+    expect(result.stdout).toContain('browserreflex report');
     expect(result.stdout).toContain('--dry-run');
+  }, 120_000);
+
+  it('runs report on the executable and outputs json, exiting 0', async () => {
+    home = makeTempHome('browserreflex-cli-bin-');
+    const dbPath = join(home.path, 'bin-report.db');
+
+    const result = await run(entry, ['report', '--db', dbPath, '--json']);
+
+    expect(result.code).toBe(0);
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed.total_decisions).toBe(0);
+    expect(parsed.note).toBe('a measurement, not a promise');
   }, 120_000);
 
   it('exits 2 with usage on an option it does not know', async () => {

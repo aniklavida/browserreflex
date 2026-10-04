@@ -53,4 +53,22 @@ describe('store connection and path injection', () => {
       db.close();
     }
   });
+
+  it('supports read-only connection without modifying the database or allowing writes', () => {
+    const dbPath = join(tempDir, 'readonly-test.db');
+    const writer = openDatabase(dbPath);
+    writer.exec("CREATE TABLE test_data (val TEXT); INSERT INTO test_data VALUES ('hello');");
+    writer.close();
+
+    const reader = openDatabase(dbPath, { readonly: true, fileMustExist: true });
+    try {
+      const row = reader.prepare('SELECT val FROM test_data').get() as { val: string };
+      expect(row.val).toBe('hello');
+      expect(() => {
+        reader.exec("INSERT INTO test_data VALUES ('blocked')");
+      }).toThrow(/readonly/);
+    } finally {
+      reader.close();
+    }
+  });
 });

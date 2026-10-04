@@ -108,3 +108,11 @@ export {
   type OwnedApiHandle,
   type StartApiOptions,
 } from './api-bridge.js';
+export {
+  generateReport,
+  renderReportText,
+  runReport,
+  type DailyFastPath,
+  type MeasurementReport,
+  type ReportOptions,
+} from './report.js';

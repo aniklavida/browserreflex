@@ -2,7 +2,7 @@
  * Tests for the command line parser.
  *
  * The parser is total: it never throws and never touches the filesystem, so
- * every branch here is reachable from a test. The cases that matter for the card
+ * every branch here is reachable from a test. The cases that matter
  * are the ones that decide what `init` is allowed to touch: which agents were
  * named, whether anything is written, whether a browser is opened, and which
  * command line goes into an agent's configuration.
@@ -22,9 +22,10 @@ describe('commands', () => {
     expect(parseArgs([]).command).toBe('help');
   });
 
-  it('recognises init and serve', () => {
+  it('recognises init, serve and report', () => {
     expect(parseArgs(['init']).command).toBe('init');
     expect(parseArgs(['serve']).command).toBe('serve');
+    expect(parseArgs(['report']).command).toBe('report');
   });
 
   it('lets --help win over a command, and --version over nothing', () => {
@@ -183,6 +184,35 @@ describe('flags that decide what init touches', () => {
   });
 });
 
+describe('report options', () => {
+  it('parses --json flag', () => {
+    expect(parseArgs(['report']).json).toBe(false);
+    expect(parseArgs(['report', '--json']).json).toBe(true);
+  });
+
+  it('parses valid --since days', () => {
+    expect(parseArgs(['report']).since).toBeUndefined();
+    expect(parseArgs(['report', '--since', '14']).since).toBe(14);
+    expect(parseArgs(['report', '--since=7']).since).toBe(7);
+  });
+
+  it('rejects non-positive or non-integer --since values', () => {
+    expect(parseArgs(['report', '--since', '0']).errors[0]).toContain(
+      '--since must be a positive integer',
+    );
+    expect(parseArgs(['report', '--since', '-5']).errors[0]).toContain(
+      '--since must be a positive integer',
+    );
+    expect(parseArgs(['report', '--since', 'two']).errors[0]).toContain(
+      '--since must be a positive integer',
+    );
+  });
+
+  it('requires a value for --since', () => {
+    expect(parseArgs(['report', '--since']).errors).toEqual(['--since needs a value']);
+  });
+});
+
 describe('usageText', () => {
   it('names every command the dispatcher answers to', () => {
     const text = usageText('0.1.0');
@@ -190,10 +220,13 @@ describe('usageText', () => {
     expect(text).toContain('browserreflex-mcp 0.1.0');
     expect(text).toContain('browserreflex-mcp init');
     expect(text).toContain('browserreflex-mcp serve');
+    expect(text).toContain('browserreflex report');
     expect(text).toContain('--dry-run');
     expect(text).toContain('--no-open');
     expect(text).toContain('--agent');
     expect(text).toContain('--home');
+    expect(text).toContain('--since');
+    expect(text).toContain('--json');
   });
 
   it('says the API listens on loopback only', () => {

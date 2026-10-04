@@ -25,7 +25,7 @@ export function openDatabase(
 
   if (targetPath !== ':memory:') {
     const dir = dirname(targetPath);
-    if (!existsSync(dir)) {
+    if (!existsSync(dir) && !options.readonly) {
       mkdirSync(dir, { recursive: true });
     }
   }
@@ -37,7 +37,7 @@ export function openDatabase(
     verbose: options.verbose,
   });
 
-  if (targetPath !== ':memory:') {
+  if (targetPath !== ':memory:' && !options.readonly) {
     db.pragma('journal_mode = WAL');
   }
   db.pragma('foreign_keys = ON');

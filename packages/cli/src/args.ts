@@ -11,7 +11,7 @@
 
 import { AGENT_IDS, isAgentId, type AgentId } from './agents.js';
 
-export type Command = 'init' | 'serve' | 'help' | 'version';
+export type Command = 'init' | 'serve' | 'report' | 'help' | 'version';
 
 export interface ParsedArgs {
   readonly command: Command;
@@ -25,6 +25,8 @@ export interface ParsedArgs {
   readonly open: boolean;
   readonly port: number | undefined;
   readonly databasePath: string | undefined;
+  readonly json: boolean;
+  readonly since: number | undefined;
   readonly help: boolean;
   readonly version: boolean;
   /** Usage errors, in the order they were found. */
@@ -108,7 +110,7 @@ export function splitCommandLine(value: string): string[] {
   return words;
 }
 
-const KNOWN_COMMANDS = new Set<string>(['init', 'serve', 'help', 'version']);
+const KNOWN_COMMANDS = new Set<string>(['init', 'serve', 'report', 'help', 'version']);
 
 export function parseArgs(argv: readonly string[]): ParsedArgs {
   const errors: string[] = [];
@@ -121,6 +123,8 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
   let open = true;
   let port: number | undefined;
   let databasePath: string | undefined;
+  let json = false;
+  let since: number | undefined;
   let help = false;
   let version = false;
   let commandSeen = false;
@@ -201,6 +205,23 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
         port = parsed;
         break;
       }
+      case '--json': {
+        json = true;
+        break;
+      }
+      case '--since': {
+        const value = takesValue();
+        if (value === undefined) {
+          break;
+        }
+        const parsed = Number.parseInt(value, 10);
+        if (!Number.isInteger(parsed) || parsed <= 0) {
+          errors.push(`--since must be a positive integer number of days, got "${value}"`);
+          break;
+        }
+        since = parsed;
+        break;
+      }
       case '--dry-run': {
         dryRun = true;
         break;
@@ -261,6 +282,8 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
     open,
     port,
     databasePath,
+    json,
+    since,
     help,
     version,
     errors,
@@ -275,13 +298,23 @@ export function usageText(version: string): string {
     'A decision layer for browser-automation agents, served over MCP.',
     '',
     'Usage:',
+    '  browserreflex report [options]       read the decision log and print a',
+    '                                       measurement report',
     '  browserreflex-mcp init [options]    detect installed agents, write their MCP',
     '                                       configuration, then start the local API',
     '                                       and open the setup wizard',
     '  browserreflex-mcp serve [options]   run the MCP server on stdio; this is the',
     '                                       command the agent configurations point at',
+    '  browserreflex-mcp report [options]  read the decision log and print a',
+    '                                       measurement report',
     '  browserreflex-mcp --help',
     '  browserreflex-mcp --version',
+    '',
+    'Options for report:',
+    '  --since <days>      window in days to report on (e.g. 14 for two weeks)',
+    '  --json              output as JSON instead of formatted text',
+    '  --db <file>         SQLite file to use instead of <home>/.browserreflex/browserreflex.db',
+    '  --home <directory>  home directory to resolve configuration paths under',
     '',
     'Options for init:',
     '  --agent <names>     comma-separated subset of: ' + AGENT_IDS.join(', '),

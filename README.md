@@ -30,6 +30,8 @@ BrowserReflex is a self-hosted MCP server with a small local web UI. It sits bes
 | Learning loop: capture, mine, shadow test, promote, re-check, demote | capture, miners, calibration and shadow test implemented and tested; promote, re-check and demote planned |
 | Chat mode (no key) and bring-your-own-key mode | experimental (fixture-tested only) |
 | Local UI: setup wizard, dashboard, review queue, thresholds and safety, engines and keys | planned |
+| Measurement report command (`browserreflex report`) | implemented and tested |
+| Gate 3 alpha evaluation | not measured |
 | Coding pack, analytics, reports, integrations, team mode, community packs | planned for later versions |
 | Enforcement of safety rules inside agent hosts | unsupported |
 
@@ -38,6 +40,7 @@ BrowserReflex is a self-hosted MCP server with a small local web UI. It sits bes
 - [Specification](docs/SPEC.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Roadmap](docs/ROADMAP.md)
+- [Gate 3 verification template](docs/gate3.md) (result: not measured)
 - [Design](docs/DESIGN.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 
