@@ -7,6 +7,7 @@ import {
   PackRepo,
   PatternRepo,
   PatternStatsRepo,
+  PromotionEventRepo,
   SessionRepo,
   SettingsRepo,
   ShadowSampleRepo,
@@ -32,6 +33,7 @@ export class DatabaseStore {
   public readonly patterns: PatternRepo;
   public readonly patternStats: PatternStatsRepo;
   public readonly shadowSamples: ShadowSampleRepo;
+  public readonly promotionEvents: PromotionEventRepo;
   public readonly settings: SettingsRepo;
 
   constructor(dbPath?: string, options?: DatabaseConnectionOptions) {
@@ -45,6 +47,7 @@ export class DatabaseStore {
     this.patterns = new PatternRepo(this.db);
     this.patternStats = new PatternStatsRepo(this.db);
     this.shadowSamples = new ShadowSampleRepo(this.db);
+    this.promotionEvents = new PromotionEventRepo(this.db);
     this.settings = new SettingsRepo(this.db);
   }
 

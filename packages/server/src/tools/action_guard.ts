@@ -253,7 +253,7 @@ export const INTERACTIVE_ROLES: readonly string[] = [
  * installed. The phrases are the specific ones the pack uses on purpose: a bare "order"
  * would fire on an order history link, and "add to cart" commits no money.
  */
-const PAYMENT_TEXT = compileRegex(
+export const PAYMENT_TEXT = compileRegex(
   String.raw`\bplace (my |your |the )?order\b|\bconfirm (my |your |the )?order\b` +
     String.raw`|\bcomplete (my |your |the )?(order|purchase|checkout)\b|\bsubmit order\b` +
     String.raw`|\bfinalise (my |the )?order\b|\bfinalize (my |the )?order\b` +
@@ -275,7 +275,7 @@ const PAYMENT_TEXT = compileRegex(
  * pack's destructive rules carry, unioned. Word boundaries keep "restore deleted items"
  * and "remove applied filters" out of it.
  */
-const DESTRUCTIVE_TEXT = compileRegex(
+export const DESTRUCTIVE_TEXT = compileRegex(
   String.raw`\bdelete\b|\berase\b|\bpurge\b|\bwipe\b` +
     String.raw`|\b(delete|remove|close|deactivate) (my |your |the )?account\b` +
     String.raw`|\bdelete (my |your |the )?profile\b|\bclose my account\b` +
@@ -293,7 +293,7 @@ const DESTRUCTIVE_TEXT = compileRegex(
  * Outbound control text, in English and in Bangla: the same alternatives the browser
  * pack's outbound rules carry, unioned.
  */
-const OUTBOUND_TEXT = compileRegex(
+export const OUTBOUND_TEXT = compileRegex(
   String.raw`\bsend\b|\bsend (message|mail|email|note|code|request|feedback|invite|reminder)\b` +
     String.raw`|\breply\b|\breply all\b|\bforward\b|\bdispatch\b` +
     String.raw`|\bpost\b|\bpost now\b|\bpublish\b|\bpublish now\b|\bshare\b` +
@@ -313,7 +313,7 @@ const COMMITTING_CONTROL_TEXT = compileRegex(
 );
 
 /** Payment step URL paths, the same list the browser pack's path rule carries. */
-const PAYMENT_PATH_PATTERNS: readonly string[] = [
+export const PAYMENT_PATH_PATTERNS: readonly string[] = [
   '/checkout',
   '/checkout/*',
   '/payment',
@@ -330,7 +330,7 @@ const PAYMENT_PATH_PATTERNS: readonly string[] = [
  * Matched only when the action names a command, because a page's own text is never read
  * as a command.
  */
-const DESTRUCTIVE_COMMAND = compileRegex(
+export const DESTRUCTIVE_COMMAND = compileRegex(
   String.raw`\bgit\s+push\b[^;\n]*(--force-with-lease\b|--force\b|-f\b)` +
     String.raw`|\bgit\s+reset\s+--hard\b` +
     String.raw`|\bgit\s+clean\b[^;\n]*-[a-z]*f` +

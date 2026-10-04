@@ -51,8 +51,8 @@ What it holds to, in one line each:
   anywhere in it. Any disagreement creates nothing at all, not even a candidate for
   the majority value.
 - A candidate is written with `status: 'shadow'`, `kind: 'learned'` and the safety
-  flag off. Nothing loads a shadow pattern into the fast path and nothing calls this
-  module: promotion, shadow testing, monitoring and demotion are **planned**.
+  flag off. Nothing loads a shadow pattern into the fast path; a candidate only becomes
+  active through the promotion rules below. Monitoring and demotion are **planned**.
 - The rule it writes is the engine's typed `Rule`, in `patterns.rules`, so shadow
   testing can load it with `compileRule`. It also passes the shipped pack schema.
 - The id is derived from the group, so mining the same group twice reports
@@ -115,3 +115,23 @@ What it holds to, in one line each:
 - Tool integration: hooked into `submit_answers` and `feedback` end to end; any failure
   inside shadow evaluation is logged and does not fail the tool call.
 - Promotion, monitoring, and demotion remain **planned**.
+
+## Promote
+
+`promote.ts` turns a shadow candidate into an active pattern. It runs after each recorded
+shadow sample and can be called over every candidate. What it holds to, in one line each:
+
+- A candidate needs 20 samples and 95% agreement. One that touches payment, destructive or
+  outbound actions, or whose samples come from decisions flagged as safety, needs 50
+  samples and 99%.
+- The thresholds are in settings. A safety threshold cannot be set below 50 samples or 99%,
+  and never below the standard one.
+- A promoted pattern never carries the safety flag and loses to a safety rule that matches
+  the same input. The safety check is advisory: it reports and does not stop an agent.
+- Its answer confidence is capped by its measured agreement.
+- Promotion is one transaction, is idempotent, and writes a promotion event with the
+  samples, agreement and thresholds used. A failure in promotion is logged and never fails
+  `submit_answers` or `feedback`.
+- **A known limit:** promoted patterns are loaded into the fast path when the MCP server
+  starts, so a pattern promoted during a session is served after the next start.
+- Re-check, demotion and drift alerts are **planned**.
