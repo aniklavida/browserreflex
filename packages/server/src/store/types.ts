@@ -262,3 +262,34 @@ export interface DecisionSignalFilter {
   limit?: number;
   offset?: number;
 }
+
+export type ShadowSampleSource = 'slow_answer' | 'feedback';
+
+export interface ShadowSample {
+  decision_id: string;
+  pattern_id: string;
+  source: ShadowSampleSource;
+  agreed: number;
+  created_at: string;
+}
+
+export interface InsertShadowSample {
+  decision_id: string;
+  pattern_id: string;
+  source: ShadowSampleSource;
+  agreed: number | boolean;
+  created_at?: string;
+}
+
+export interface RecordShadowSampleResult {
+  recorded: boolean;
+  sample: ShadowSample | null;
+}
+
+export interface ShadowSampleFilter {
+  pattern_id?: string;
+  decision_id?: string;
+  source?: ShadowSampleSource;
+  limit?: number;
+  offset?: number;
+}

@@ -6,3 +6,4 @@ export { PackRepo } from './packs.js';
 export { PatternRepo } from './patterns.js';
 export { PatternStatsRepo } from './pattern-stats.js';
 export { SettingsRepo } from './settings.js';
+export { ShadowSampleRepo } from './shadow-samples.js';
