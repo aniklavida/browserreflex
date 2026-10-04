@@ -22,7 +22,7 @@ describe('store typed repositories', () => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it('inserts and retrieves records for all 7 tables with typed repos', () => {
+  it('inserts and retrieves records for all 8 tables with typed repos', () => {
     // 1. sessions
     const session = store.sessions.create({
       agent_name: 'test-agent',
@@ -109,7 +109,26 @@ describe('store typed repositories', () => {
     const lookupByHash = store.decisions.findByInputHash('hash-abc-123');
     expect(lookupByHash?.id).toBe(decision.id);
 
-    // 6. feedback
+    // 6. decision_signals
+    const signal = store.signals.upsert({
+      decision_id: decision.id,
+      domain: 'example.com',
+      path: '/login',
+      element_role: 'button',
+      element_text: 'Accept Cookies',
+      element_source: 'target',
+      selector: '#accept-cookies',
+      tokens: ['accept', 'cookies'],
+      source: 'slow_path_answer',
+    });
+    expect(signal.decision_id).toBe(decision.id);
+    expect(signal.tokens).toEqual(['accept', 'cookies']);
+    expect(signal.element_source).toBe('target');
+    const fetchedSignal = store.signals.getByDecisionId(decision.id);
+    expect(fetchedSignal?.path).toBe('/login');
+    expect(store.signals.count({ domain: 'example.com', path: '/login' })).toBe(1);
+
+    // 7. feedback
     const feedback = store.feedback.create({
       decision_id: decision.id,
       correct_value: JSON.stringify({ allow: true }),
@@ -126,7 +145,7 @@ describe('store typed repositories', () => {
     expect(feedbackList.length).toBe(1);
     expect(feedbackList[0]?.id).toBe(feedback.id);
 
-    // 7. settings
+    // 8. settings
     const setting = store.settings.set('retention_days', '30');
     expect(setting.key).toBe('retention_days');
     expect(setting.value).toBe('30');

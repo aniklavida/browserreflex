@@ -12,6 +12,8 @@
  *   the database, keeping the pending decision retryable with the same `decision_id`.
  * - Valid answers whose confidence is below the threshold route to `needs_human`.
  * - Unknown or already-completed decision IDs return clear typed errors.
+ * - A stored answer is the slow path completing, so `learning/capture.ts` captures the
+ *   signals a miner needs for that decision. A fast-path answer captures nothing.
  */
 
 import { performance } from 'node:perf_hooks';
@@ -34,6 +36,7 @@ import {
   validateAnswer,
 } from '../core/schema.js';
 import { updateDecisionLog } from '../core/log.js';
+import { captureDecisionSignals } from '../learning/capture.js';
 import { getDefaultStore, type DatabaseStore, type Session } from '../index.js';
 
 export interface ValidatedAnswerItem {
@@ -406,7 +409,7 @@ export async function executeSubmitAnswers(
     );
 
     if (obj.confidence >= threshold) {
-      updateDecisionLog({
+      const updated = updateDecisionLog({
         id: decision.id,
         answer: serialized,
         confidence: obj.confidence,
@@ -415,6 +418,12 @@ export async function executeSubmitAnswers(
         needsReview: 0,
         store,
       });
+
+      // The slow path has completed, so this is where the signals a miner needs are
+      // captured. Nothing is captured when no answer was stored.
+      if (updated !== null) {
+        captureDecisionSignals({ store, decision: updated, source: 'slow_path_answer' });
+      }
 
       answers.push({
         decision_id: decision.id,
@@ -429,7 +438,7 @@ export async function executeSubmitAnswers(
         latency_ms: latencyMs,
       });
     } else {
-      updateDecisionLog({
+      const updated = updateDecisionLog({
         id: decision.id,
         answer: serialized,
         confidence: obj.confidence,
@@ -438,6 +447,11 @@ export async function executeSubmitAnswers(
         needsReview: 1,
         store,
       });
+
+      // Same slow path, same capture: the answer is stored with path 'ai' either way.
+      if (updated !== null) {
+        captureDecisionSignals({ store, decision: updated, source: 'slow_path_answer' });
+      }
 
       needs_human.push({
         decision_id: decision.id,

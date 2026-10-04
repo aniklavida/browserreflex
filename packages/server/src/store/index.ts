@@ -9,6 +9,7 @@ import {
   PatternStatsRepo,
   SessionRepo,
   SettingsRepo,
+  SignalRepo,
 } from './repos/index.js';
 
 export * from './types.js';
@@ -24,6 +25,7 @@ export class DatabaseStore {
   public readonly db: Database.Database;
   public readonly sessions: SessionRepo;
   public readonly decisions: DecisionRepo;
+  public readonly signals: SignalRepo;
   public readonly feedback: FeedbackRepo;
   public readonly packs: PackRepo;
   public readonly patterns: PatternRepo;
@@ -35,6 +37,7 @@ export class DatabaseStore {
     runMigrations(this.db);
     this.sessions = new SessionRepo(this.db);
     this.decisions = new DecisionRepo(this.db);
+    this.signals = new SignalRepo(this.db);
     this.feedback = new FeedbackRepo(this.db);
     this.packs = new PackRepo(this.db);
     this.patterns = new PatternRepo(this.db);
