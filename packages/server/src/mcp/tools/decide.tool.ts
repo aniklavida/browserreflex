@@ -18,6 +18,8 @@ export const tool: ToolDefinition = {
       session: context.session,
       sessionId: context.sessionId,
       patternEngine: context.patternEngine,
+      keyStore: context.keyStore,
+      adapter: context.adapter,
     });
 
     const total =
@@ -27,7 +29,7 @@ export const tool: ToolDefinition = {
       result.schema_violations.length;
 
     const summary =
-      `Processed ${total} decision(s): ${result.answers.length} answered from memory, ` +
+      `Processed ${total} decision(s): ${result.answers.length} answered, ` +
       `${result.needs_ai.length} need AI, ${result.needs_human.length} need human review` +
       `${result.schema_violations.length > 0 ? `, ${result.schema_violations.length} schema violation(s)` : ''}. ` +
       `The safety check is advisory.`;

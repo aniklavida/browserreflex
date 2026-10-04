@@ -12,11 +12,12 @@ agent.
 | Anthropic adapter (Messages API, forced tool call) | **implemented and tested** against recorded fixtures; no test has reached the live API | `test/anthropic-adapter.test.ts` |
 | `resolveNeedsAi` | **implemented and tested** | `test/resolve-needs-ai.test.ts` |
 | OpenAI, Gemini, OpenRouter, Ollama adapters | **planned** | none; no file exists |
-| Wiring BYOK mode into `decide`, and a settings mode switch | **planned** | none; `decide` behaves exactly as it did |
+| Wiring BYOK mode into `decide` (reads the `mode` setting; no UI switch yet) | **implemented and tested** with a scripted adapter, never against a live provider | `test/decide-tool.test.ts` |
 
-`resolveNeedsAi` is not called by anything yet. It exists and is tested; the card that
-calls it from `decide` is not written. Nothing in this directory changes how `decide`
-behaves today.
+`resolveNeedsAi` is wired into `decide`. When a provider key is configured and mode is
+not set to chat, `decide` resolves `needs_ai` decisions through the adapter, records
+valid answers with path `ai`, routes low-confidence answers to review, and keeps
+rejected or failed items in `needs_ai`. With no key configured, behaviour is unchanged.
 
 ## The interface
 
@@ -133,8 +134,8 @@ that was never offered.
   provider's published Messages API documentation, and every test runs against a
   recorded fixture through an injected `fetch`, an injected `sleep` and an injected
   clock. Nothing here is a claim about a real account, a real key or a real bill.
-- **`resolveNeedsAi` has no caller.** It is not wired into `decide`, and no settings mode
-  switch exists. That is a later card.
+- **Other provider adapters are planned.** Anthropic is the only implemented provider
+  adapter; OpenAI, Gemini, OpenRouter, and Ollama are planned.
 - **No cost table.** `usage` carries the provider's token counts and nothing derives a
   price from them, because a price table would be a guess about someone else's invoice.
 - **The injected clock is monotonic and per call.** `latency_ms` is wall time around the
