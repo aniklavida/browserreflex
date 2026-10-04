@@ -370,6 +370,15 @@ describe('runCli', () => {
       expect(printed).toContain('.claude.json');
       expect(printed).toContain('This layout is experimental');
     });
+
+    it('dispatches the report command and exits with USAGE_EXIT_CODE', async () => {
+      const code = await runCli(environment({ argv: ['report', '--home', home.path] }));
+
+      expect(code).toBe(USAGE_EXIT_CODE);
+      expect(stdout.join('\n')).toContain(
+        'BrowserReflex measurement report: a measurement, not a promise.',
+      );
+    });
   });
 });
 

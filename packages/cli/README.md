@@ -1,8 +1,9 @@
 # browserreflex-mcp
 
-The `browserreflex-mcp` command: `init` writes this server's MCP entry into the
-configuration of the agents installed for the current user, and `serve` is the
-entry those configurations point at.
+The `browserreflex-mcp` (or `browserreflex`) command: `init` writes this server's
+MCP entry into the configuration of the agents installed for the current user,
+`serve` is the entry those configurations point at, and `report` prints a measurement
+report from the local decision log.
 
 Status: **implemented and tested** on macOS, in `packages/cli/test/`. Nothing here
 was run on Windows or on Linux: their path layouts and launcher commands are
@@ -61,6 +62,33 @@ before the database is opened. The entry `init` writes into an agent configurati
 runs `serve` on its own, so an agent-launched server uses the default database
 unless `BROWSERREFLEX_DB_PATH` is set in that process's environment: set it for
 both when you want them to share one file.
+
+## What `report` does
+
+```
+browserreflex report [options]
+browserreflex-mcp report [options]
+```
+
+Reads the local decision log in read-only mode and prints a measurement report:
+- Total decisions recorded in range.
+- Path breakdown: counts and shares for `memory`, `pattern`, `check`, `ai`, and `human`.
+- Fast-path share: the share of decisions answered without a model (`memory`, `pattern`, `check`). A model answer (`ai` or `human`) is never fast.
+- Per-day fast-path share: daily breakdown so a rise over two weeks can be read.
+- Time saved estimate: computed using the shared formula from `get_stats` (`fast_answers * 3s assumed model call`). It is labelled an estimate and never presented as measured.
+- Pending reviews: count of decisions currently waiting on a person.
+- Shadow candidates: count of mined patterns currently in shadow testing.
+
+The output carries the sentence "a measurement, not a promise" and guards against small samples: when total decisions in range are under 30, it states that the sample is too small to read rather than printing a daily trend. If the database file does not exist or has no decisions, it prints an honest empty report and exits 0.
+
+### Options for report
+
+| Option | Effect |
+|---|---|
+| `--since <days>` | Window in days to report on (e.g. `14` for two weeks). When omitted, all recorded decisions are reported. |
+| `--json` | Output machine-readable JSON instead of formatted text. |
+| `--db <file>` | SQLite file to read. The file is opened read-only; no data is ever written to it. |
+| `--home <directory>` | Home directory to resolve configuration paths under. |
 
 ## The agents, and what is known about each
 

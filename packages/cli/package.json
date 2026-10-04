@@ -8,7 +8,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "browserreflex-mcp": "./dist/bin.js"
+    "browserreflex-mcp": "./dist/bin.js",
+    "browserreflex": "./dist/bin.js"
   },
   "scripts": {
     "build": "tsc",

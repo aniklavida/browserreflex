@@ -27,6 +27,7 @@ import {
   type OpenUrlFn,
 } from './init.js';
 import { currentPlatform, resolveHome } from './paths.js';
+import { runReport } from './report.js';
 
 /** Where the command writes its human-readable output. */
 export interface CliStreams {
@@ -122,6 +123,8 @@ export async function runCli(environment: CliEnvironment): Promise<number> {
       return runServe(parsed, environment);
     case 'init':
       return runInitCommand(parsed, environment);
+    case 'report':
+      return runReportCommand(parsed, environment);
   }
 }
 
@@ -210,6 +213,28 @@ async function runInitCommand(parsed: ParsedArgs, environment: CliEnvironment): 
   }
 
   return exitCodeFor(report);
+}
+
+async function runReportCommand(parsed: ParsedArgs, environment: CliEnvironment): Promise<number> {
+  const home = resolveHome({
+    home: parsed.home,
+    env: environment.env ?? process.env,
+    platform: environment.platform,
+  });
+  const databasePath = resolveDatabasePath(
+    home.home,
+    home.platform,
+    environment.env ?? process.env,
+    parsed.databasePath,
+  );
+
+  return runReport({
+    databasePath,
+    since: parsed.since,
+    json: parsed.json,
+    now: environment.now,
+    streams: environment.streams,
+  });
 }
 
 function waitForInterrupt(handle: NonNullable<InitReport['handle']>): Promise<void> {
