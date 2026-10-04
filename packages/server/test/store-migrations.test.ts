@@ -45,6 +45,7 @@ describe('store migrations', () => {
     expect(tableNames).toContain('patterns');
     expect(tableNames).toContain('pattern_stats');
     expect(tableNames).toContain('decisions');
+    expect(tableNames).toContain('decision_signals');
     expect(tableNames).toContain('feedback');
     expect(tableNames).toContain('settings');
   });
