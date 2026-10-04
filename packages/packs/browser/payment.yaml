@@ -83,7 +83,7 @@ rules:
       target_question_id: browser.check.risky_action
       role:
         - button
-      text_regex: '\bpay now\b|\bpay and order\b|\bpay & order\b|\bpay with (a )?(card|credit card|debit card)\b|\bmake a payment\b|\bpay securely\b|\bpay (the )?(total|amount|balance)\b|\bwallet\b'
+      text_regex: '\bpay\b|\bpay now\b|\bpay and order\b|\bpay & order\b|\bpay with (a )?(card|credit card|debit card)\b|\bmake a payment\b|\bpay securely\b|\bpay (the )?(total|amount|balance)\b|\bwallet\b'
     output:
       type: choice
       value: ask_user

@@ -459,7 +459,10 @@ export function promoteCandidate(options: PromoteCandidateOptions): PromotionEva
  */
 export function promoteAllCandidates(options: PromoteAllOptions): PromotionEvaluationResult[] {
   const { store } = options;
-  const shadowPatterns = store.patterns.list({ status: 'shadow' });
+  // The store lists by creation time, which can tie; order by id so a run is repeatable.
+  const shadowPatterns = [...store.patterns.list({ status: 'shadow' })].sort((a, b) =>
+    a.id < b.id ? -1 : a.id > b.id ? 1 : 0,
+  );
   const results: PromotionEvaluationResult[] = [];
 
   for (const pattern of shadowPatterns) {

@@ -1,6 +1,6 @@
 # Browser pack fixtures
 
-65 fixture files, each one synthetic.
+67 fixture files, each one synthetic.
 
 **Every fixture in this directory is a synthetic example written to resemble a real accessibility tree. None of them is a capture of a real site, and no fixture was recorded from a live page.** Each file states this itself, and `packages/server/test/browser-pack.test.ts` fails if a file drops the statement, the `synthetic: true` flag, or the `provenance` line.
 
@@ -44,8 +44,8 @@ snapshot:
 | `newsletter_popup` | 8 | 2, one of them a recorded known gap |
 | `login_wall` | 8 | 2 |
 | `captcha` | 7 | 2 |
-| `payment` | 13 | 2 |
-| `destructive` | 13 | 4 |
+| `payment` | 14 | 2 |
+| `destructive` | 14 | 4 |
 | `outbound` | 9 | 2 |
 
 Benign pages that must not trigger a risky rule are included on purpose: an order history link, an article about deleting browser caches, restoring deleted items, removing applied filters, an article about sending email, downloading an invoice, adding to a cart or a wishlist.
