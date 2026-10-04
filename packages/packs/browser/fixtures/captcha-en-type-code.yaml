@@ -1,0 +1,17 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: captcha
+expected:
+  value: true
+  pattern_id: browser.captcha.widget_prompt
+snapshot:
+  url: https://tickets.example/seat-map
+  elements:
+    - role: heading
+      text: Choose a seat
+    - role: textbox
+      text: Enter the characters you see
+    - role: img
+      text: Challenge image
+    - role: button
+      text: Check

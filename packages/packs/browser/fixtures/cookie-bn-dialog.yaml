@@ -1,0 +1,16 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: cookie_banner
+expected:
+  value: cookie_banner
+snapshot:
+  url: https://tickets.example/seat-map
+  elements:
+    - role: dialog
+      text: কুকি সম্মতি
+    - role: button
+      text: সম্মতি দিন
+    - role: button
+      text: না
+    - role: link
+      text: গোপনীয়তা নীতি

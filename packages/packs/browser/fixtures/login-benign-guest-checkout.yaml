@@ -1,0 +1,19 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: login_wall
+expected:
+  no_match: true
+note: >-
+  A checkout page that offers guest checkout is not a login wall. No sign in
+  prompt, no authentication path and no password field are present.
+snapshot:
+  url: https://shop.example/cart
+  elements:
+    - role: heading
+      text: Cart
+    - role: button
+      text: Continue as guest
+    - role: button
+      text: Checkout
+    - role: link
+      text: Return to shopping

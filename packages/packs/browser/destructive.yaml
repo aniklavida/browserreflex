@@ -1,0 +1,142 @@
+id: browser-risky-destructive
+name: Browser Risky Destructive Rules
+version: 1.0.0
+description: >-
+  Marks a destructive action on the supplied page as risky. Every rule is
+  advisory and flagged safety, takes precedence over non safety rules in the
+  engine, and answers the risky action choice question with the option ids
+  allow, ask_user and block. Signals are the accessible text of delete, remove
+  and clear controls, in English and in Bangla.
+source: builtin
+rules:
+  - id: browser.risky.destructive.delete_control
+    name: Delete control
+    description: >-
+      A button or menu item whose text deletes or erases. Links are excluded so
+      that help text links do not read as an action, and word boundaries keep
+      Restore deleted items and Undelete out.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - menuitem
+      text_regex: '\bdelete\b|\berase\b|\bpurge\b|\bwipe\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.92
+      distribution:
+        allow: 0.05
+        ask_user: 0.92
+        block: 0.03
+
+  - id: browser.risky.destructive.account_control
+    name: Account removal control
+    description: >-
+      An interactive control whose text deletes, removes or closes an account or
+      a profile.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+        - menuitem
+      text_regex: '\b(delete|remove|close|deactivate) (my |your |the )?account\b|\bdelete (my |your |the )?profile\b|\bclose my account\b|\bdeactivate (my |the )?account\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.95
+      distribution:
+        allow: 0.03
+        ask_user: 0.94
+        block: 0.03
+
+  - id: browser.risky.destructive.mass_control
+    name: Mass deletion control
+    description: >-
+      An interactive control whose text deletes or empties a whole set such as
+      all items, all files, the cart or every subscription.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+        - menuitem
+      text_regex: '\bdelete all\b|\bdelete everything\b|\bremove all\b|\bclear all\b|\bempty (my |the )?(cart|basket|trash|bin)\b|\bunsubscribe all\b|\bpurge all\b|\bdiscard all changes\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.93
+      distribution:
+        allow: 0.04
+        ask_user: 0.93
+        block: 0.03
+
+  - id: browser.risky.destructive.scoped_remove_control
+    name: Scoped removal control
+    description: >-
+      An interactive control whose text removes a named set of the user data,
+      such as all data, all history or all files.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+        - menuitem
+      text_regex: '\b(delete|remove|clear) (all|every|my) (data|history|files|items|orders|photos|messages|followings?|bookmarks|search history)\b|\bdelete (my )?(data|history|files|photos|account data)\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.93
+      distribution:
+        allow: 0.04
+        ask_user: 0.93
+        block: 0.03
+
+  - id: browser.risky.destructive.bangla_delete
+    name: Bangla delete control
+    description: >-
+      An interactive control in Bangla that deletes or removes (muchun, delete
+      korun, opson korun).
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+        - menuitem
+      text_regex: 'মুছুন|মুছে ফেলুন|ডিলিট করুন|ডিলিট|অপসারণ করুন|অপসারণ'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.92
+      distribution:
+        allow: 0.05
+        ask_user: 0.92
+        block: 0.03
+
+  - id: browser.risky.destructive.bangla_account
+    name: Bangla account removal control
+    description: >-
+      An interactive control in Bangla that deletes an account or everything
+      (account muchun, sob delete, sob muche felun).
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+        - menuitem
+      text_regex: 'অ্যাকাউন্ট মুছুন|অ্যাকাউন্ট ডিলিট|সব ডিলিট|সব মুছে|সব মুছুন|সব ডেটা মুছুন'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.94
+      distribution:
+        allow: 0.04
+        ask_user: 0.93
+        block: 0.03

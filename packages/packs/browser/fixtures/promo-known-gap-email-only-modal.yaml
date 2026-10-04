@@ -1,0 +1,25 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: newsletter_popup
+expected:
+  no_match: true
+known_gap: true
+note: >-
+  Known gap. This is a newsletter modal that offers nothing but an email field
+  and a close control, which the specification lists as a promo signal. A rule
+  can require only one element match, so the pack cannot demand an email field
+  and a close control together, and the email field alone is not enough because
+  a newsletter form in a page footer is not a popup. Recorded as follow-up work.
+snapshot:
+  url: https://docs.example/guide/install
+  elements:
+    - role: heading
+      text: Install the tool
+    - role: dialog
+      text: Stay in the loop
+    - role: textbox
+      text: Email address
+    - role: button
+      text: Close
+    - role: paragraph
+      text: We will send product news once a month.

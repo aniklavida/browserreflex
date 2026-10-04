@@ -1,0 +1,17 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: payment
+expected:
+  value: ask_user
+  pattern_id: browser.risky.payment.pay_control
+snapshot:
+  url: https://shop.example/pay/session/1a2
+  elements:
+    - role: heading
+      text: Payment
+    - role: textbox
+      text: Card number
+    - role: button
+      text: Pay now
+    - role: link
+      text: Change payment method

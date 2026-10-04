@@ -20,6 +20,8 @@ Pattern pack loader (`packages/server/src/patterns/loader.ts`, 2026-10-04) uses 
 
 The `feedback` tool (`packages/server/src/tools/feedback.ts`, 2026-10-04) reuses the store repositories, the memory module and `redact`, and adds no dependency to this table.
 
+The browser pattern pack (`packages/packs/browser/*.yaml`, 2026-10-04) is versioned YAML read by the loader above, so it adds no dependency: the rules and their 65 synthetic fixtures are data, not code. The fixture test (`packages/server/test/browser-pack.test.ts`) parses those fixtures with `yaml` (ISC, already in the production table above) and runs on `vitest` (MIT, already in the development table below), so it adds nothing to either table.
+
 The local REST API and the built UI it serves (`packages/server/src/api/`, 2026-10-04) use only the Node standard library (`node:http`, `node:fs`, `node:path`), so it added no dependency to this table either. There is no web framework: the HTTP server, the router and the static file serving are written against `node:http`.
 
 | Package | Version | Licence | Type | Date Checked |

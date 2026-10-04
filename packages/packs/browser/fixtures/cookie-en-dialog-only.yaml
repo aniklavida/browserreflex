@@ -1,0 +1,18 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: cookie_banner
+expected:
+  value: cookie_banner
+snapshot:
+  url: https://news.example/read/2026/how-consent-works
+  elements:
+    - role: dialog
+      text: Your privacy choices
+    - role: button
+      text: Reject all
+    - role: button
+      text: Allow all
+    - role: link
+      text: Cookie settings
+    - role: link
+      text: Privacy policy

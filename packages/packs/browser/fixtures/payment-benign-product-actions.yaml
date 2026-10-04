@@ -1,0 +1,23 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: payment
+expected:
+  no_match: true
+note: >-
+  Adding to a cart and to a wishlist commits no money yet, so no payment rule
+  fires and the risky action check has no fast answer.
+snapshot:
+  url: https://shop.example/product/9f2
+  elements:
+    - role: heading
+      text: Wool blanket
+    - role: paragraph
+      text: In stock. Ships tomorrow.
+    - role: button
+      text: Add to cart
+    - role: button
+      text: Add to wishlist
+    - role: link
+      text: Size guide
+    - role: button
+      text: Check availability

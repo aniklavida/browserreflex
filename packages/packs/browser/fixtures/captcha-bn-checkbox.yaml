@@ -1,0 +1,19 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: captcha
+expected:
+  value: true
+  pattern_id: browser.captcha.bangla_widget
+snapshot:
+  url: https://market.example.bd/signup
+  elements:
+    - role: heading
+      text: নতুন অ্যাকাউন্ট
+    - role: checkbox
+      text: আমি রোবট নই
+    - role: textbox
+      text: ক্যাপচা
+    - role: button
+      text: চালিয়ে যান
+    - role: paragraph
+      text: তথ্য আমাদের সাথে ভাগ করবেন না।

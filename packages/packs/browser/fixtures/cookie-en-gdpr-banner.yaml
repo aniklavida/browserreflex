@@ -1,0 +1,14 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: cookie_banner
+expected:
+  value: cookie_banner
+snapshot:
+  url: https://shop.example/
+  elements:
+    - role: banner
+      text: We value your privacy. This site is GDPR compliant and stores no personal data in the browser.
+    - role: button
+      text: Reject non essential
+    - role: link
+      text: Manage preferences

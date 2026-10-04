@@ -1,0 +1,133 @@
+id: browser-risky-outbound
+name: Browser Risky Outbound Rules
+version: 1.0.0
+description: >-
+  Marks a send, post or publish action on the supplied page as risky. Every
+  rule is advisory and flagged safety, takes precedence over non safety rules
+  in the engine, and answers the risky action choice question with the option
+  ids allow, ask_user and block. Signals are the accessible text of send,
+  reply, share, post and publish controls, and a compose URL path, in English
+  and in Bangla.
+source: builtin
+rules:
+  - id: browser.risky.outbound.send_control
+    name: Send control
+    description: >-
+      An interactive control whose text sends, replies to or forwards a
+      message. Word boundaries keep Sending and Unsent out.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+        - menuitem
+      text_regex: '\bsend\b|\bsend (message|mail|email|note|code|request|feedback|invite|reminder)\b|\breply( all)?\b|\bforward\b|\bdispatch\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.9
+      distribution:
+        allow: 0.07
+        ask_user: 0.9
+        block: 0.03
+
+  - id: browser.risky.outbound.publish_control
+    name: Publish or share control
+    description: >-
+      An interactive control whose text posts, publishes or shares content
+      outward. Tabs are included because composers use them.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+        - menuitem
+        - tab
+      text_regex: '\bpost\b|\bpost now\b|\bpublish\b|\bpublish now\b|\bshare\b|\bshare (post|story|update|video|link)\b|\btweet\b|\bretweet\b|\bboost\b|\bschedule post\b|\bgo live\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.9
+      distribution:
+        allow: 0.07
+        ask_user: 0.9
+        block: 0.03
+
+  - id: browser.risky.outbound.compose_path_control
+    name: Compose URL path
+    description: >-
+      The URL path is a message composer and the page carries a control whose
+      text commits the message. Catches composers that label the button only
+      Send or Post.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      url_path:
+        - /compose
+        - /compose/*
+        - /compose/**
+        - /mail/compose
+        - /mail/compose/*
+        - /new-message
+        - /new-message/*
+        - /message/new
+        - /message/new/*
+        - /drafts/compose
+        - /drafts/compose/*
+      role:
+        - button
+      text_regex: '\b(send|post|publish|share|schedule|submit)\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.9
+      distribution:
+        allow: 0.07
+        ask_user: 0.9
+        block: 0.03
+
+  - id: browser.risky.outbound.bangla_send
+    name: Bangla send control
+    description: >-
+      An interactive control in Bangla that sends or forwards something
+      (pathan, pathiye din, preren korun).
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+        - menuitem
+      text_regex: 'পাঠান|পাঠিয়ে দিন|প্রেরণ করুন|পাঠানো'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.9
+      distribution:
+        allow: 0.07
+        ask_user: 0.9
+        block: 0.03
+
+  - id: browser.risky.outbound.bangla_publish
+    name: Bangla publish or share control
+    description: >-
+      An interactive control in Bangla that posts, publishes or shares content
+      outward (post korun, prakash korun, share korun).
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+        - menuitem
+      text_regex: 'পোস্ট করুন|প্রকাশ করুন|শেয়ার করুন|পাবলিশ করুন|পোস্ট'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.9
+      distribution:
+        allow: 0.07
+        ask_user: 0.9
+        block: 0.03

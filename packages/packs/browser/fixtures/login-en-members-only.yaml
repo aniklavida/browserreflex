@@ -1,0 +1,16 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: login_wall
+expected:
+  value: true
+snapshot:
+  url: https://press.example/archive/2024
+  elements:
+    - role: heading
+      text: Archive
+    - role: paragraph
+      text: This content is for registered members only.
+    - role: button
+      text: Join free
+    - role: link
+      text: About membership

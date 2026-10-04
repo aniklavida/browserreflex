@@ -1,0 +1,19 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: newsletter_popup
+expected:
+  no_match: true
+note: >-
+  An article about leaving a mailing list is not a promotional popup. No popup
+  rule fires, so the decision has no fast answer.
+snapshot:
+  url: https://news.example/how-to/leave-a-mailing-list
+  elements:
+    - role: heading
+      text: How to unsubscribe from a mailing list
+    - role: paragraph
+      text: Look for the unsubscribe link at the bottom of every message.
+    - role: link
+      text: Manage your subscriptions
+    - role: button
+      text: Print this page
