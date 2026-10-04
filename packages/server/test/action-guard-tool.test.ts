@@ -563,6 +563,34 @@ describe('action_guard', () => {
       expect(classifyRule({ ...learnedRule({ id: 'z' }), pack_id: 'a-pack' })).toBe('pack');
     });
 
+    it('treats a mined candidate carrying kind learned as learned, whatever its pack id', () => {
+      // The shape the miners write: kind learned, safety off, no pack id on the rule.
+      expect(classifyRule({ ...learnedRule({ id: 'mined' }), kind: 'learned' })).toBe('learned');
+      expect(
+        classifyRule({
+          ...learnedRule({ id: 'mined-with-pack' }),
+          kind: 'learned',
+          pack_id: 'learned-text',
+        }),
+      ).toBe('learned');
+    });
+
+    it('a mined candidate answering allow cannot clear a payment safety rule', async () => {
+      const engine = createPatternEngine([
+        learnedRule({
+          id: 'learned.mined.allow',
+          kind: 'learned',
+          pack_id: null,
+          safety: false,
+          is_safety: false,
+        }),
+      ]);
+
+      const result = await guard(PAYMENT_CLICK, engine);
+
+      expect(result.verdict).toBe('ask_user');
+    });
+
     it('never reads a learned pattern as a safety rule, whatever it says about itself', () => {
       expect(classifyRule(learnedRule({ id: 'a', safety: true }))).toBe('learned');
     });

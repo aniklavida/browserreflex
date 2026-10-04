@@ -79,8 +79,10 @@
  *   earlier call could only ever add caution here and the tool has no use for it, so
  *   exact-match memory is left to `decide`. A test asserts that a stored `allow` for the
  *   same input leaves a payment action at `ask_user`.
- * - **There is no miner yet**, so nothing in this build writes a learned rule. The
- *   learned-rule behaviour is tested by writing those rules straight into the engine.
+ * - **A mined candidate is a learned rule.** The miners write `kind: 'learned'`, no
+ *   `pack_id` and `status: 'shadow'`; all three markers are read, and any of them is
+ *   enough. Nothing loads a shadow candidate into the engine yet, so the learned path is
+ *   tested by writing such rules straight into the engine.
  * - **The command rule needs the action to name a command.** An action called something
  *   this build does not recognise takes the low-confidence `allow` path with `needs_ai`,
  *   which is the honest answer for an unknown verb rather than a guess that some string
@@ -729,12 +731,17 @@ export interface Caution {
 /**
  * Decides whether a matching engine rule is a written pack rule or a learned one.
  *
- * A rule with a `pack_id` is a pack rule. A rule with none is a learned pattern, and a
- * rule marked `shadow` or `candidate` is an unverified candidate whatever its
- * `pack_id`: neither is a safety rule here, so neither can raise anything above
- * `ask_user` or lower anything at all.
+ * A rule with a `pack_id` is a pack rule. Everything else is learned: a rule with no
+ * `pack_id`, a rule whose `kind` is `learned` (which is what the miners write), and a
+ * rule marked `shadow` or `candidate` whatever its `pack_id`, because an unverified
+ * candidate is not a safety rule. None of those may raise anything above `ask_user` or
+ * lower anything at all.
  */
 export function classifyRule(rule: Rule): CautionSource {
+  const kind = rule['kind'];
+  if (typeof kind === 'string' && kind === 'learned') {
+    return 'learned';
+  }
   const status = rule['status'];
   if (typeof status === 'string' && (status === 'shadow' || status === 'candidate')) {
     return 'learned';

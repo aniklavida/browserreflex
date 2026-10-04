@@ -41,10 +41,11 @@ the reason ends with the same sentence, and the tool description says it.
    caught from the URL path, which is the case a text-only rule misses.
 2. **The rules of a loaded pack** are read through the pattern engine and can answer
    `ask_user` or `block`.
-3. **A learned pattern may only add caution.** A rule in the engine with no `pack_id`, or
-   one marked `shadow` or `candidate`, is read as `ask_user` whatever its own output says,
-   and an `allow` from any rule is dropped. There is no miner yet, so nothing in this build
-   writes such a rule; the test writes them straight into the engine.
+3. **A learned pattern may only add caution.** A rule in the engine with no `pack_id`, one
+   whose `kind` is `learned` (what the miners write), and one marked `shadow` or `candidate`
+   are all read as `ask_user` whatever their own output says, and an `allow` from any rule is
+   dropped. Nothing loads a mined candidate into the engine yet, so the learned path is tested
+   by writing those rules straight into the engine.
 
 `resolveVerdict` is the only place a verdict changes. It starts at `allow` and moves up
 `allow < ask_user < block` only. Everything else is ignored rather than obeyed:

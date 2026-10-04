@@ -8,7 +8,10 @@ patterns.
 | Step | State | Tests |
 |---|---|---|
 | Capture | **implemented and tested** | `test/capture.test.ts` |
-| Mine, shadow test, promote, monitor, demote | **planned** | none; nothing is served |
+| Mine, browser | **implemented and tested** | `test/miner-browser.test.ts` |
+| Mine, text keyword | **implemented and tested** | `test/miner-text.test.ts` |
+| Confidence calibration | **implemented and tested** | `test/calibrate.test.ts` |
+| Shadow test, promote, monitor, demote | **planned** | none; nothing is served |
 
 ## Capture
 
@@ -34,3 +37,56 @@ indexed columns; the answer, the confidence and the decision type stay on the
 
 Coding signals, a normalised error signature and file paths, are **planned** for
 the coding pack. Nothing in `capture.ts` extracts them.
+
+## Mine, browser
+
+`miners/browser.ts` reads the captured signals, joins each to its decision for the
+answer, groups the samples by decision type, domain, path, element role, element text
+and question, and writes one candidate pattern per group that agreed. The module
+header documents the group key, the confidence formula and every skip reason in full.
+What it holds to, in one line each:
+
+- A group needs `MIN_AGREEING` (3) agreeing decisions **and** no disagreement
+  anywhere in it. Any disagreement creates nothing at all, not even a candidate for
+  the majority value.
+- A candidate is written with `status: 'shadow'`, `kind: 'learned'` and the safety
+  flag off. Nothing loads a shadow pattern into the fast path and nothing calls this
+  module: promotion, shadow testing, monitoring and demotion are **planned**.
+- The rule it writes is the engine's typed `Rule`, in `patterns.rules`, so the shadow
+  card can load it with `compileRule`. It also passes the shipped pack schema.
+- The id is derived from the group, so mining the same group twice reports
+  `already_mined` instead of writing a second row.
+- The report says what it did not do: rows read, rows that joined a group, every skip
+  with its reason, and whether a `limit` left rows unread.
+- A corrected decision is not mined (`feedback` leaves the decision row holding the
+  answer that was corrected), and a row that says the slow path answered a decision
+  the decision row calls a fast path is not mined either.
+- The safety check is advisory, and a learned candidate never carries the safety
+  flag. A decision a safety rule answered is not mined at all.
+- **A known limit:** `matchForQuestion` wants a distribution over every option of a
+  `choice` question and the store keeps no options, so a mined `choice` candidate is
+  not returned by that call. A mined `check` or `score` candidate is. Nothing here
+  invents a distribution.
+
+## Confidence calibration
+
+`calibrate.ts` makes the claim "says 90%" answerable against "right 90%". Per group (a
+pattern id, or a URL path when no rule named the answer, plus the decision type) it bins
+the stated confidence into ten bins, reads the share of feedback-confirmed answers in the
+bin that were right, and maps a stated confidence to that share, blended with the bin's own
+mean stated confidence in proportion to its sample count. `MIN_SAMPLES` (20) is where a bin
+stops needing the blend. `calibrationError` reports the expected calibration error, so the
+error can be measured before and after on the same history.
+
+The router calls it for pattern answers only, through the pure `calibrate` with the history
+`readCalibrationHistory` reads from the store:
+
+- A bin with no confirmed sample returns the stated confidence unchanged, and so does any
+  answer whose rule has no corrections yet. Absence of feedback is not confirmation.
+- Only the confidence moves. The value, the path and the pattern id are the rule's own, and
+  the decision row stores the confidence the answer carried.
+- A safety rule keeps its stated confidence. Its verdict does not depend on its confidence,
+  so there is nothing to adjust, and the safety check is advisory either way.
+- A sample needs a correction. A rule whose answers are all accepted silently is never
+  calibrated, and a rule that is corrected only when it is wrong is calibrated low. The
+  module header lists that limit and the rest in full.
