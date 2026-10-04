@@ -1,0 +1,15 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: outbound
+expected:
+  value: ask_user
+  pattern_id: browser.risky.outbound.send_control
+snapshot:
+  url: https://forum.example/thread/88
+  elements:
+    - role: heading
+      text: Which lens should I buy for portraits
+    - role: button
+      text: Reply
+    - role: button
+      text: Quote

@@ -1,0 +1,21 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: outbound
+expected:
+  no_match: true
+note: >-
+  Downloading an invoice and searching a list send nothing to anybody, so no
+  outbound rule fires.
+snapshot:
+  url: https://shop.example/orders/4412
+  elements:
+    - role: heading
+      text: Order 4412
+    - role: button
+      text: Download invoice
+    - role: textbox
+      text: Search orders
+    - role: button
+      text: Apply
+    - role: link
+      text: Order history

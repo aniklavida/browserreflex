@@ -1,0 +1,18 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: newsletter_popup
+expected:
+  value: promo
+snapshot:
+  url: https://shop.example/product/44c1
+  elements:
+    - role: heading
+      text: Wool blanket
+    - role: dialog
+      text: 'Limited time offer: 20% off your first order'
+    - role: textbox
+      text: Email address
+    - role: button
+      text: Subscribe now
+    - role: button
+      text: No thanks

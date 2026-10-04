@@ -1,0 +1,19 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: cookie_banner
+expected:
+  value: cookie_banner
+  pattern_id: browser.popup.cookie.accept_control
+snapshot:
+  url: https://shop.example/carts/9f2
+  elements:
+    - role: heading
+      text: Your cart
+    - role: region
+      text: We use cookies to measure traffic and personalise offers. Choose what you allow.
+    - role: button
+      text: Accept all cookies
+    - role: button
+      text: Reject all
+    - role: link
+      text: Cookie settings

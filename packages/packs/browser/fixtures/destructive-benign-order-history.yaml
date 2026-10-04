@@ -1,0 +1,21 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: destructive
+expected:
+  no_match: true
+note: >-
+  Order history is a read only view. Neither an order history link nor a
+  reorder control is a deletion.
+snapshot:
+  url: https://shop.example/orders
+  elements:
+    - role: heading
+      text: Order history
+    - role: listitem
+      text: Order 4412, delivered on 3 March
+    - role: link
+      text: Order details
+    - role: button
+      text: Reorder
+    - role: link
+      text: Download invoice

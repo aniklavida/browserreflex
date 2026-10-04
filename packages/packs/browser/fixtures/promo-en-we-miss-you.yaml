@@ -1,0 +1,18 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: newsletter_popup
+expected:
+  value: promo
+snapshot:
+  url: https://outlet.example/shoes
+  elements:
+    - role: heading
+      text: Trail shoes
+    - role: dialog
+      text: We miss you! Here is 10% off when you come back
+    - role: textbox
+      text: Your email
+    - role: button
+      text: Get the discount
+    - role: button
+      text: Close

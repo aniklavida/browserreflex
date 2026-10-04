@@ -1,0 +1,19 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: destructive
+expected:
+  no_match: true
+note: >-
+  Undo wording is not a deletion. Word boundaries keep Restore deleted items
+  out of the delete rule.
+snapshot:
+  url: https://mail.example/trash
+  elements:
+    - role: heading
+      text: Trash
+    - role: listitem
+      text: Weekly digest, deleted yesterday
+    - role: button
+      text: Restore deleted items
+    - role: button
+      text: Report spam
