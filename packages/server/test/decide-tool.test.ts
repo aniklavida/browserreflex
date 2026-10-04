@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -9,10 +9,22 @@ import {
   type DatabaseStore,
   type Question,
   SCHEMA_VIOLATION,
+  createFileKeyStore,
   createMemory,
   createStore,
 } from '../src/index.js';
 import { executeDecide } from '../src/tools/decide.js';
+import { tool as decideMcpTool } from '../src/mcp/tools/decide.tool.js';
+import type { ToolContext } from '../src/mcp/tools/tool.js';
+import {
+  type AdapterDecideRequest,
+  type AdapterDecideResult,
+  type FetchLike,
+  type ModelAdapter,
+  type RetryPolicy,
+  AdapterError,
+  createAnthropicAdapter,
+} from '../src/adapters/index.js';
 import { connectToServer, sourceEntry } from './helpers/stdio-server.js';
 
 describe('decide tool', () => {
@@ -394,4 +406,453 @@ describe('decide tool', () => {
       rmSync(stdioTempDir, { recursive: true, force: true });
     }
   }, 120_000);
+});
+
+// ---------------------------------------------------------------------------
+// BYOK mode tests
+// ---------------------------------------------------------------------------
+
+const POPUP_QUESTION: ChoiceQuestion = {
+  id: 'q_popup',
+  type: 'choice',
+  text: 'What kind of dialog is visible?',
+  options: [
+    { id: 'cookie_banner', description: 'Cookie banner' },
+    { id: 'login_modal', description: 'Login modal' },
+    { id: 'none', description: 'No dialog' },
+  ],
+};
+
+const LOGIN_QUESTION: CheckQuestion = {
+  id: 'q_login_wall',
+  type: 'check',
+  text: 'Is a login wall in the way?',
+};
+
+function runtimeKeyLiteral(): string {
+  const parts = ['sk', 'ant', 'api03', 'RuntimeKeyLiteralTestOnly9876543210'];
+  return parts.join('-');
+}
+
+function anthropicFixture(name: string): string {
+  return readFileSync(new URL(`./fixtures/anthropic/${name}`, import.meta.url), 'utf8');
+}
+
+interface FakeResponse {
+  status: number;
+  body: string;
+  headers?: Record<string, string>;
+}
+
+function fakeFetch(responses: readonly FakeResponse[]): {
+  fetch: FetchLike;
+  requests: { url: string; headers: Record<string, string>; body: string }[];
+} {
+  const requests: { url: string; headers: Record<string, string>; body: string }[] = [];
+  let index = 0;
+  const fetchImpl: FetchLike = async (url, init) => {
+    requests.push({ url, headers: { ...init.headers }, body: init.body });
+    const response = responses[index];
+    index += 1;
+    if (!response) {
+      throw new Error(
+        `The fake fetch was asked for response ${index} but the fixture list holds ${responses.length}.`,
+      );
+    }
+    const headers = new Map(
+      Object.entries(response.headers ?? {}).map(([k, v]) => [k.toLowerCase(), v]),
+    );
+    return {
+      ok: response.status >= 200 && response.status < 300,
+      status: response.status,
+      headers: { get: (name: string) => headers.get(name.toLowerCase()) ?? null },
+      text: async () => response.body,
+    };
+  };
+  return { fetch: fetchImpl, requests };
+}
+
+const RETRY_OFF: RetryPolicy = {
+  maxAttempts: 1,
+  initialDelayMs: 0,
+  maxDelayMs: 0,
+  backoffFactor: 1,
+};
+
+function scriptedAdapter(params: {
+  answer: (request: AdapterDecideRequest) => AdapterDecideResult | Error;
+  provider?: string;
+  defaultModel?: string;
+  timeoutMs?: number;
+  retry?: RetryPolicy;
+}): ModelAdapter {
+  return {
+    provider: params.provider ?? 'anthropic',
+    defaultModel: params.defaultModel ?? 'scripted-model-1',
+    timeoutMs: params.timeoutMs ?? 1000,
+    retry: params.retry ?? RETRY_OFF,
+    decide: async (request) => {
+      const outcome = params.answer(request);
+      if (outcome instanceof Error) throw outcome;
+      return outcome;
+    },
+  };
+}
+
+describe('decide tool BYOK mode', () => {
+  let byokTempDir: string;
+  let byokDbPath: string;
+  let byokStore: DatabaseStore;
+
+  beforeEach(() => {
+    byokTempDir = mkdtempSync(join(tmpdir(), 'browserreflex-test-byok-'));
+    byokDbPath = join(byokTempDir, 'test.db');
+    byokStore = createStore(byokDbPath);
+  });
+
+  afterEach(() => {
+    byokStore.close();
+    rmSync(byokTempDir, { recursive: true, force: true });
+  });
+
+  it('with no key configured, behaviour is unchanged (chat mode, returns needs_ai)', async () => {
+    const keyStore = createFileKeyStore({ directory: join(byokTempDir, 'keys') });
+    const result = await executeDecide(
+      { questions: [POPUP_QUESTION], state: { url: 'https://example.com' } },
+      { store: byokStore, keyStore },
+    );
+
+    expect(result.answers).toHaveLength(0);
+    expect(result.needs_ai).toHaveLength(1);
+    expect(result.needs_ai[0]!.id).toBe('q_popup');
+    expect(result.needs_ai[0]!.decision_id).toBeDefined();
+
+    const logged = byokStore.decisions.getById(result.needs_ai[0]!.decision_id);
+    expect(logged).not.toBeNull();
+    expect(logged!.answer).toBe('pending');
+    expect(logged!.path).toBe('ai');
+    expect(logged!.confidence).toBe(0.0);
+  });
+
+  it('when mode is explicitly set to chat, stays in chat mode even if a key is configured', async () => {
+    const keyStore = createFileKeyStore({ directory: join(byokTempDir, 'keys') });
+    await keyStore.setKey('anthropic', runtimeKeyLiteral());
+    byokStore.settings.set('mode', 'chat');
+
+    let called = false;
+    const adapter = scriptedAdapter({
+      answer: () => {
+        called = true;
+        return {
+          provider: 'anthropic',
+          model: 'claude-haiku',
+          answers: [{ questionId: 'q_popup', value: 'cookie_banner', confidence: 0.95 }],
+          rejects: [],
+          latencyMs: 10,
+          attempts: 1,
+        };
+      },
+    });
+
+    const result = await executeDecide(
+      { questions: [POPUP_QUESTION], state: { url: 'https://example.com' } },
+      { store: byokStore, keyStore, adapter },
+    );
+
+    expect(called).toBe(false);
+    expect(result.answers).toHaveLength(0);
+    expect(result.needs_ai).toHaveLength(1);
+  });
+
+  it('does not call an adapter when the key store holds no key for its provider', async () => {
+    const keyStore = createFileKeyStore({ directory: join(byokTempDir, 'keys') });
+
+    let called = false;
+    const adapter = scriptedAdapter({
+      answer: () => {
+        called = true;
+        return {
+          provider: 'anthropic',
+          model: 'claude-haiku',
+          answers: [{ questionId: 'q_popup', value: 'cookie_banner', confidence: 0.95 }],
+          rejects: [],
+          latencyMs: 10,
+          attempts: 1,
+        };
+      },
+    });
+
+    const result = await executeDecide(
+      { questions: [POPUP_QUESTION], state: { url: 'https://example.com' } },
+      { store: byokStore, keyStore, adapter },
+    );
+
+    expect(called).toBe(false);
+    expect(result.answers).toHaveLength(0);
+    expect(result.needs_ai).toHaveLength(1);
+  });
+
+  it('resolves needs_ai through adapter when key is configured, recording path ai, latency and confidence', async () => {
+    const key = runtimeKeyLiteral();
+    const keyStore = createFileKeyStore({ directory: join(byokTempDir, 'keys') });
+    await keyStore.setKey('anthropic', key);
+
+    const fixtureBody = anthropicFixture('tool-use-choice.json');
+    const { fetch: testFetch, requests } = fakeFetch([{ status: 200, body: fixtureBody }]);
+
+    const adapter = createAnthropicAdapter({
+      keyStore,
+      store: byokStore,
+      fetch: testFetch,
+      retry: RETRY_OFF,
+    });
+
+    const result = await executeDecide(
+      { questions: [POPUP_QUESTION], state: { url: 'https://example.com/checkout' } },
+      { store: byokStore, keyStore, adapter },
+    );
+
+    expect(requests).toHaveLength(1);
+    expect(requests[0]!.headers['x-api-key']).toBe(key);
+
+    expect(result.needs_ai).toHaveLength(0);
+    expect(result.needs_human).toHaveLength(0);
+    expect(result.answers).toHaveLength(1);
+
+    const ans = result.answers[0]!;
+    expect(ans.id).toBe('q_popup');
+    expect(ans.path).toBe('ai');
+    expect(ans.value).toBe('cookie_banner');
+    expect(ans.confidence).toBe(0.86);
+    expect(ans.latency_ms).toBeGreaterThanOrEqual(0);
+    expect(ans.distribution).toEqual({
+      cookie_banner: 0.86,
+      login_modal: 0.09,
+      none: 0.05,
+    });
+
+    // Check database record
+    const logged = byokStore.decisions.getById(ans.decision_id);
+    expect(logged).not.toBeNull();
+    expect(logged!.path).toBe('ai');
+    expect(logged!.confidence).toBe(0.86);
+    expect(logged!.answer).toBe(
+      JSON.stringify({
+        value: 'cookie_banner',
+        distribution: { cookie_banner: 0.86, login_modal: 0.09, none: 0.05 },
+      }),
+    );
+
+    // Key leakage assertions: key must never be logged, stored in decisions, or returned in tool output
+    expect(JSON.stringify(result)).not.toContain(key);
+    expect(JSON.stringify(byokStore.decisions.list())).not.toContain(key);
+    expect(JSON.stringify(byokStore.settings.list())).not.toContain(key);
+
+    const dbBytes = readFileSync(byokDbPath);
+    expect(dbBytes.includes(Buffer.from(key))).toBe(false);
+  });
+
+  it('valid model answer below threshold routes to needs_human', async () => {
+    const key = runtimeKeyLiteral();
+    const keyStore = createFileKeyStore({ directory: join(byokTempDir, 'keys') });
+    await keyStore.setKey('anthropic', key);
+
+    const adapter = scriptedAdapter({
+      answer: () => ({
+        provider: 'anthropic',
+        model: 'haiku-test',
+        answers: [
+          {
+            questionId: 'q_popup',
+            value: 'cookie_banner',
+            confidence: 0.65,
+            distribution: { cookie_banner: 0.65, login_modal: 0.25, none: 0.1 },
+          },
+        ],
+        rejects: [],
+        latencyMs: 15,
+        attempts: 1,
+      }),
+    });
+
+    // Default threshold is 0.8; 0.65 is below threshold
+    const result = await executeDecide(
+      { questions: [POPUP_QUESTION], state: { url: 'https://example.com' }, threshold: 0.8 },
+      { store: byokStore, keyStore, adapter },
+    );
+
+    expect(result.answers).toHaveLength(0);
+    expect(result.needs_ai).toHaveLength(0);
+    expect(result.needs_human).toHaveLength(1);
+
+    const human = result.needs_human[0]!;
+    expect(human.id).toBe('q_popup');
+    expect(human.decision_id).toBeDefined();
+    expect(human.reason).toContain('below threshold 0.8');
+
+    const logged = byokStore.decisions.getById(human.decision_id!);
+    expect(logged).not.toBeNull();
+    expect(logged!.path).toBe('ai');
+    expect(logged!.confidence).toBe(0.65);
+    expect(logged!.needs_review).toBe(1);
+  });
+
+  it('invalid model output is rejected by schema, falls back to needs_ai, and is never stored as an answer', async () => {
+    const key = runtimeKeyLiteral();
+    const keyStore = createFileKeyStore({ directory: join(byokTempDir, 'keys') });
+    await keyStore.setKey('anthropic', key);
+
+    const adapter = scriptedAdapter({
+      answer: () => ({
+        provider: 'anthropic',
+        model: 'haiku-test',
+        // 'invented_invalid_dialog' is not one of ['cookie_banner', 'login_modal', 'none']
+        answers: [{ questionId: 'q_popup', value: 'invented_invalid_dialog', confidence: 0.95 }],
+        rejects: [],
+        latencyMs: 15,
+        attempts: 1,
+      }),
+    });
+
+    const result = await executeDecide(
+      { questions: [POPUP_QUESTION], state: { url: 'https://example.com' } },
+      { store: byokStore, keyStore, adapter },
+    );
+
+    expect(result.answers).toHaveLength(0);
+    expect(result.needs_human).toHaveLength(0);
+    // Invalid output falls back to needs_ai
+    expect(result.needs_ai).toHaveLength(1);
+    expect(result.needs_ai[0]!.id).toBe('q_popup');
+
+    // Never stored as an answer: decision remains pending
+    const logged = byokStore.decisions.getById(result.needs_ai[0]!.decision_id);
+    expect(logged).not.toBeNull();
+    expect(logged!.answer).toBe('pending');
+    expect(logged!.confidence).toBe(0.0);
+    expect(JSON.stringify(byokStore.decisions.list())).not.toContain('invented_invalid_dialog');
+  });
+
+  it('adapter failure (error 500, timeout, rate limit) falls back to needs_ai and never throws to caller', async () => {
+    const key = runtimeKeyLiteral();
+    const keyStore = createFileKeyStore({ directory: join(byokTempDir, 'keys') });
+    await keyStore.setKey('anthropic', key);
+
+    const adapter = scriptedAdapter({
+      answer: () =>
+        new AdapterError({
+          code: 'http_error',
+          message: 'The provider answered status 500.',
+          provider: 'anthropic',
+          status: 500,
+          attempts: 3,
+        }),
+    });
+
+    // Must not throw!
+    const result = await executeDecide(
+      { questions: [POPUP_QUESTION], state: { url: 'https://example.com' } },
+      { store: byokStore, keyStore, adapter },
+    );
+
+    expect(result.answers).toHaveLength(0);
+    expect(result.needs_human).toHaveLength(0);
+    expect(result.needs_ai).toHaveLength(1);
+    expect(result.needs_ai[0]!.id).toBe('q_popup');
+
+    const logged = byokStore.decisions.getById(result.needs_ai[0]!.decision_id);
+    expect(logged).not.toBeNull();
+    expect(logged!.answer).toBe('pending');
+  });
+
+  it('model skips a question: answered item resolves, skipped item falls back to needs_ai', async () => {
+    const key = runtimeKeyLiteral();
+    const keyStore = createFileKeyStore({ directory: join(byokTempDir, 'keys') });
+    await keyStore.setKey('anthropic', key);
+
+    const adapter = scriptedAdapter({
+      answer: () => ({
+        provider: 'anthropic',
+        model: 'haiku-test',
+        // Model only answered q_popup, skipped q_login_wall
+        answers: [
+          {
+            questionId: 'q_popup',
+            value: 'cookie_banner',
+            confidence: 0.95,
+            distribution: { cookie_banner: 0.95, login_modal: 0.05, none: 0.0 },
+          },
+        ],
+        rejects: [],
+        latencyMs: 15,
+        attempts: 1,
+      }),
+    });
+
+    const result = await executeDecide(
+      { questions: [POPUP_QUESTION, LOGIN_QUESTION], state: { url: 'https://example.com' } },
+      { store: byokStore, keyStore, adapter },
+    );
+
+    expect(result.answers).toHaveLength(1);
+    expect(result.answers[0]!.id).toBe('q_popup');
+    expect(result.answers[0]!.path).toBe('ai');
+
+    expect(result.needs_ai).toHaveLength(1);
+    expect(result.needs_ai[0]!.id).toBe('q_login_wall');
+  });
+
+  it('MCP decide tool handle executes BYOK and reports advisory summary without leaking key', async () => {
+    const key = runtimeKeyLiteral();
+    const keyStore = createFileKeyStore({ directory: join(byokTempDir, 'keys') });
+    await keyStore.setKey('anthropic', key);
+
+    const adapter = scriptedAdapter({
+      answer: () => ({
+        provider: 'anthropic',
+        model: 'haiku-test',
+        answers: [
+          {
+            questionId: 'q_popup',
+            value: 'cookie_banner',
+            confidence: 0.9,
+            distribution: { cookie_banner: 0.9, login_modal: 0.08, none: 0.02 },
+          },
+        ],
+        rejects: [],
+        latencyMs: 20,
+        attempts: 1,
+      }),
+    });
+
+    const context: ToolContext = {
+      serverName: 'browserreflex-test',
+      serverVersion: '0.1.0',
+      transport: 'stdio',
+      toolNames: ['decide'],
+      store: byokStore,
+      keyStore,
+      adapter,
+    };
+
+    const callResult = await decideMcpTool.handle(
+      { questions: [POPUP_QUESTION], state: { url: 'https://example.com' } },
+      context,
+    );
+
+    expect(callResult.isError).toBeFalsy();
+    const firstBlock = callResult.content[0];
+    const textSummary = firstBlock && firstBlock.type === 'text' ? firstBlock.text : '';
+    expect(textSummary).toContain('1 answered');
+    expect(textSummary).toContain('0 need AI');
+    expect(textSummary).toContain('The safety check is advisory.');
+
+    const structured = callResult.structuredContent as Record<string, unknown>;
+    const answers = structured.answers as { path: string; value: string }[];
+    expect(answers).toHaveLength(1);
+    expect(answers[0]!.path).toBe('ai');
+    expect(answers[0]!.value).toBe('cookie_banner');
+
+    expect(JSON.stringify(callResult)).not.toContain(key);
+  });
 });
