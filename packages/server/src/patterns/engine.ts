@@ -101,6 +101,9 @@ export class PatternEngine {
   match(input: unknown): PatternMatchResult | null {
     const snapshot = normalizeSnapshot(input);
     for (const rule of this.compiledRules) {
+      if (rule.status === 'shadow' || rule.rule.status === 'shadow') {
+        continue;
+      }
       if (matchRule(rule, snapshot, this.maxRegexInputLength)) {
         return {
           rule: rule.rule,
@@ -121,6 +124,9 @@ export class PatternEngine {
     const snapshot = normalizeSnapshot(input);
     const results: PatternMatchResult[] = [];
     for (const rule of this.compiledRules) {
+      if (rule.status === 'shadow' || rule.rule.status === 'shadow') {
+        continue;
+      }
       if (matchRule(rule, snapshot, this.maxRegexInputLength)) {
         results.push({
           rule: rule.rule,
@@ -159,6 +165,11 @@ export class PatternEngine {
     const threshold = options?.threshold ?? 0.8;
 
     for (const rule of this.compiledRules) {
+      // 0. Shadow rules are never served
+      if (rule.status === 'shadow' || rule.rule.status === 'shadow') {
+        continue;
+      }
+
       // 1. Question ID constraint if present on rule
       const targetQId = rule.matchers.target_question_id ?? rule.matchers.question_id;
       if (targetQId && targetQId !== question.id) {

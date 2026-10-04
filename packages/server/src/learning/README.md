@@ -11,7 +11,8 @@ patterns.
 | Mine, browser | **implemented and tested** | `test/miner-browser.test.ts` |
 | Mine, text keyword | **implemented and tested** | `test/miner-text.test.ts` |
 | Confidence calibration | **implemented and tested** | `test/calibrate.test.ts` |
-| Shadow test, promote, monitor, demote | **planned** | none; nothing is served |
+| Shadow test | **implemented and tested** | `test/shadow.test.ts` |
+| Promote, monitor, demote | **planned** | none; nothing is served |
 
 ## Capture
 
@@ -52,8 +53,8 @@ What it holds to, in one line each:
 - A candidate is written with `status: 'shadow'`, `kind: 'learned'` and the safety
   flag off. Nothing loads a shadow pattern into the fast path and nothing calls this
   module: promotion, shadow testing, monitoring and demotion are **planned**.
-- The rule it writes is the engine's typed `Rule`, in `patterns.rules`, so the shadow
-  card can load it with `compileRule`. It also passes the shipped pack schema.
+- The rule it writes is the engine's typed `Rule`, in `patterns.rules`, so shadow
+  testing can load it with `compileRule`. It also passes the shipped pack schema.
 - The id is derived from the group, so mining the same group twice reports
   `already_mined` instead of writing a second row.
 - The report says what it did not do: rows read, rows that joined a group, every skip
@@ -90,3 +91,27 @@ The router calls it for pattern answers only, through the pure `calibrate` with 
 - A sample needs a correction. A rule whose answers are all accepted silently is never
   calibrated, and a rule that is corrected only when it is wrong is calibrated low. The
   module header lists that limit and the rest in full.
+
+## Shadow test
+
+`shadow.ts` evaluates candidate patterns (`status: 'shadow'`) against slow-path answers
+(`submit_answers`) and human corrections (`feedback`). Candidate rules run silently
+while the model or human still provides the answer, allowing agreement and accuracy
+to be measured without altering served decisions.
+
+What it holds to, in one line each:
+
+- Candidate rules are matched against stored decision signals and page snapshots using
+  the engine's compiled matchers.
+- A candidate's output value is compared with the recorded answer; one `shadow_samples`
+  row is written and `pattern_stats` (`sample_count`, `agreed_count`, `disagreed_count`,
+  `last_evaluated_at`, `updated_at`) is updated in one atomic transaction.
+- The same (decision, pattern) pair evaluated twice is a no-op: existing records are
+  preserved and sample counts are not inflated.
+- Shadow rules never alter decide results and the pattern engine never serves shadow
+  candidates.
+- A shadow candidate never carries the safety flag and cannot touch safety rules. The
+  safety check is advisory, and nothing here prevents an agent from acting.
+- Tool integration: hooked into `submit_answers` and `feedback` end to end; any failure
+  inside shadow evaluation is logged and does not fail the tool call.
+- Promotion, monitoring, and demotion remain **planned**.

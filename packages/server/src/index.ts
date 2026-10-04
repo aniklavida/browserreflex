@@ -65,3 +65,4 @@ export * from './tools/submit_answers.js';
 export * from './store/index.js';
 export * from './patterns/index.js';
 export * from './adapters/index.js';
+export * from './learning/shadow.js';

@@ -47,6 +47,7 @@ import type { ZodRawShape } from 'zod';
 import type { DecisionType } from '../core/schema.js';
 import { getDefaultStore } from '../core/log.js';
 import { captureDecisionSignals } from '../learning/capture.js';
+import { evaluateShadowCandidates } from '../learning/shadow.js';
 import { redact } from '../security/redact.js';
 import type {
   DatabaseStore,
@@ -379,6 +380,18 @@ export async function executeFeedback(
   // A correction is a slow-path signal the miner needs, whatever path produced the
   // original answer. The decision row itself is left exactly as it was written.
   captureDecisionSignals({ store, decision, source: 'human_correction' });
+
+  try {
+    evaluateShadowCandidates({
+      store,
+      decision,
+      source: 'feedback',
+      recordedAnswer: corrected.value,
+    });
+  } catch (error) {
+    // Log and continue: a failure inside shadow evaluation must not fail the tool call
+    console.error('[browserreflex shadow error]', error);
+  }
 
   return {
     status: 'recorded',

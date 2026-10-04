@@ -9,6 +9,7 @@ import {
   PatternStatsRepo,
   SessionRepo,
   SettingsRepo,
+  ShadowSampleRepo,
   SignalRepo,
 } from './repos/index.js';
 
@@ -30,6 +31,7 @@ export class DatabaseStore {
   public readonly packs: PackRepo;
   public readonly patterns: PatternRepo;
   public readonly patternStats: PatternStatsRepo;
+  public readonly shadowSamples: ShadowSampleRepo;
   public readonly settings: SettingsRepo;
 
   constructor(dbPath?: string, options?: DatabaseConnectionOptions) {
@@ -42,6 +44,7 @@ export class DatabaseStore {
     this.packs = new PackRepo(this.db);
     this.patterns = new PatternRepo(this.db);
     this.patternStats = new PatternStatsRepo(this.db);
+    this.shadowSamples = new ShadowSampleRepo(this.db);
     this.settings = new SettingsRepo(this.db);
   }
 
