@@ -4,7 +4,7 @@
 
 BrowserReflex is a self-hosted MCP server with a small local web UI. It sits beside a browser-automation agent. For repeated small questions (what kind of popup is this, is this button safe to click, is a login wall in the way) it answers from remembered inputs, written rules and direct checks of the page. When none of those is confident enough, the question goes to the agent's own model, and that answer is stored so the next occurrence is fast.
 
-> **Status: pre-release.** The server core, all eight MCP tools, the browser pattern pack, the CLI commands (`init`, `serve`, `report`), and the advisory safety suite are **implemented and tested**. The local web UI (every page in the design, and the shell) is **implemented and tested** against a mocked API and has never been run against a live agent; the live provider connection test is **experimental**; Docker support, other providers, importing a pack file and PDF reports are **planned**. There is no stable release yet; see the capability table below for the state of each feature.
+> **Status: pre-release.** The server core, all eight MCP tools, the browser pattern pack, the CLI commands (`init`, `serve`, `report`), and the advisory safety suite are **implemented and tested**. The local web UI (every page in the design, and the shell) is **implemented and tested** against a mocked API and has never been run against a live agent; the live provider connection test is **experimental**; Docker support is written but untested (never built or run); other providers, importing a pack file and PDF reports are **planned**. There is no stable release yet; see the capability table below for the state of each feature.
 
 ## What it is, and what it is not
 
