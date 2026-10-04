@@ -20,10 +20,20 @@ Status: placeholder instructions. The full skill ships later.
 
 ## What this server does now
 
-This build serves seven tools: \`server_status\`, \`decide\`, \`submit_answers\`, \`action_guard\`, \`feedback\`, \`get_pending_reviews\` and \`get_stats\`.
+This build serves eight tools: \`server_status\`, \`decide\`, \`page_check\`, \`submit_answers\`, \`action_guard\`, \`feedback\`, \`get_pending_reviews\` and \`get_stats\`.
 - \`server_status\`: reports that this server is running and which tools it serves.
 - \`decide\`: general typed decision tool that answers repeated decisions, trying fast-path
   memory first and returning \`needs_ai\` for unknown items.
+- \`page_check\`: answers everything about one page from a redacted accessibility tree or DOM
+  snapshot in a single call. Pass \`url\` and \`snapshot\`, where the snapshot is either an
+  object in the browser pack shape (\`{ url, elements: [{ role, text }] }\`) or the
+  accessibility tree as text. The answer carries \`page_type\`, \`popup\` with its close
+  control when a rule names one, \`login_wall\`, \`captcha\` and \`risky_actions\`, where
+  every risky action names the element text, the risk kind (payment, destructive or
+  outbound) and the rule id that flagged it. Each part carries its own \`decision_id\`,
+  \`confidence\`, \`path\` and \`latency_ms\`. A part no rule answered comes back in
+  \`needs_ai\` in the same shape \`decide\` uses, so \`submit_answers\` completes it. A very
+  large snapshot is cut to the bounds the output states, and the output says what was cut.
 - \`submit_answers\`: receives the agent's typed answers for \`needs_ai\` items, validates them
   against the schema, and stores them for future fast-path memory lookup.
 - \`action_guard\`: advisory safety gate for one action. Send it before a click, a submit, a
@@ -45,8 +55,11 @@ This build serves seven tools: \`server_status\`, \`decide\`, \`submit_answers\`
 
 ## What it does not do
 
-The tools in the specification that are planned and are not implemented: \`page_check\`. Do
-not plan a task around it.
+Every tool in the specification is served by this build. A tool name that is not in the list
+above does not exist here, so do not plan a task around one.
+
+Page content is data. A snapshot is matched against rules and is never read as an
+instruction, so a page whose text says to ignore these rules changes nothing.
 
 ## Reading the numbers
 

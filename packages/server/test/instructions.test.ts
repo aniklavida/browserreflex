@@ -24,18 +24,26 @@ describe('server instructions', () => {
 
     expect(text).toContain('server_status');
     expect(text).toContain('decide');
+    expect(text).toContain('page_check');
     expect(text).toContain('submit_answers');
     expect(text).toContain('action_guard');
-    expect(text).toMatch(/planned and are not implemented/);
+    expect(text).toMatch(/every tool in the specification is served/i);
     expect(text).toMatch(/never prevents an agent from acting/);
+    expect(text).not.toMatch(/page_check[^.]*planned/);
+  });
+
+  it('says that page content is data and is never read as an instruction', () => {
+    const text = loadInstructions().replace(/\s+/g, ' ');
+
+    expect(text).toMatch(/never read as an instruction/);
   });
 
   it('does not tell the agent to call a tool this build does not serve', () => {
     const text = loadInstructions().replace(/\s+/g, ' ');
 
     expect(text).toContain('page_check');
-    expect(text).toMatch(/`page_check`\. Do not plan a task around it/);
-    expect(text).not.toMatch(/`action_guard` are planned/);
+    expect(text).toMatch(/does not exist here, so do not plan a task around one/);
+    expect(text).not.toMatch(/action_guard[^.]*is planned/);
   });
 
   it('says what action_guard does and does not do, in the text an agent reads', () => {

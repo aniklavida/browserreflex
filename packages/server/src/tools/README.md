@@ -13,7 +13,71 @@ MCP tool logic, one module per tool under `src/tools/`. The wire definitions liv
 | `feedback` | **implemented and tested** | `test/feedback-tool.test.ts` |
 | `get_pending_reviews` | **implemented and tested** | `test/reviews-tool.test.ts` |
 | `get_stats` | **implemented and tested** | `test/stats-tool.test.ts` |
-| `page_check` | **planned** | none; nothing is served |
+| `page_check` | **implemented and tested** | `test/page-check-tool.test.ts` |
+| `action_guard` | **implemented and tested** | `test/action-guard-tool.test.ts` |
+
+## `page_check`
+
+Takes a `url` and a `snapshot`, and answers everything it can about one page in one call:
+`page_type`, `popup` (with the close control when a rule names one), `login_wall`,
+`captcha` and `risky_actions[]`.
+
+The `snapshot` is either an object in the browser pack shape
+(`{ url, elements: [{ role, text }] }`, optionally with `text`) or the accessibility tree as
+text, one element per line, written as `- role "accessible name"`. A line whose first word
+is not lower case is treated as page text rather than as an element.
+
+Every part of the answer carries its own `question_id`, `value`, `status`, `confidence`,
+`path`, `pattern_id`, `latency_ms`, `decision_id` and `reason`, and every one of them is
+written to the decision log by `core/log.ts` with the path, confidence and rule id that
+actually produced it. Snapshot text goes through redaction before it is stored, and the
+element text in `risky_actions` is redacted on the way out as well.
+
+A part no rule answered carries `value: null` and `status: "needs_ai"`, and appears in
+`needs_ai` in the same shape `decide` uses, so `submit_answers` completes it with the same
+`decision_id`. **No rule in the shipped browser pack targets `browser.check.page_type`**, so
+the page type always comes back that way in this build; the option ids are this server's
+contract for a pack that does answer it.
+
+### How a risky action is found
+
+Every element is read separately against `browser.check.risky_action`, because a rule
+matches one element at a time. An element a rule flags with `ask_user` or `block` is
+reported with its `element_text`, its `risk` (`payment`, `destructive` or `outbound`, read
+from the rule id) and the `rule_id` that flagged it. `risk` is `null` when the rule that
+fired is not in one of the three shipped families: this server does not guess a kind. An
+element no rule flags produces no decision row, because no question was asked about it.
+
+These rows are written with `is_safety` and `needs_review` set when the rule is an advisory
+safety rule, so a flagged action appears in `get_pending_reviews` like any other decision
+waiting on a person. That is a request for the user and nothing else: the safety check is
+**advisory**, nothing in this server stops an agent from acting, and a row flagged
+`is_safety` is a record of a request, not of a block.
+
+### What the work is bounded by
+
+`PAGE_CHECK_BOUNDS` bounds one call: 400 elements, 256 characters of one element's text
+(the same length the pattern engine already bounds its regular expressions to, so no
+`text_regex` rule loses a match), 8192 characters of page text, and 50 reported risky
+actions. The bounds are reported on **every** call in `snapshot.bounds`, and anything
+actually cut is counted in `snapshot` with `truncated: true`. Nothing is ever cut
+silently: a button past the element bound is not reported, and the output says how many
+elements were dropped.
+
+### A pack that fails to load
+
+The browser pack is loaded through the pack loader: at start-up in `mcp/start.ts`, and
+again by the tool itself when it is called without an engine. A pack that fails to load
+never stops the server. The rules that did load are served, `packs.errors` names the file,
+the rule and the line of each pack that did not load, and `packs.rule_count` and
+`packs.pack_ids` say exactly which rules could answer.
+
+### What this tool does not do
+
+- It does not read the browser. The agent passes the snapshot.
+- It does not answer one action; `action_guard` does that for the three risky families.
+- It does not judge whether the rules are right about real pages. Accuracy on real pages is
+  **unverified**: the browser pack is measured only on synthetic fixtures.
 
 ## `action_guard`
 
