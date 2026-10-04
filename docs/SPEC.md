@@ -152,6 +152,8 @@ One local SQLite file with seven tables: `sessions`, `decisions`, `feedback`, `p
 
 Every shipped dependency must be MIT, Apache or BSD licensed.
 
+BYOK mode sends its default model in one place: the Anthropic adapter uses `claude-haiku-4-5-20251001`, the fast and cheap Haiku class model, named once in code as `DEFAULT_ANTHROPIC_MODEL` and overridable in settings. The Anthropic adapter is **implemented and tested** against recorded fixtures, with no test reaching the live API; the other adapters are **planned**. A provider call is bounded by a timeout and a bounded retry on 429 and 5xx, never on a 4xx authentication error, and the key is read from the operating system keychain at call time and never logged, returned or quoted in an error.
+
 ## Security and privacy
 
 - Local-first: data, logs and patterns stay on the user's machine; no telemetry unless the user opts in.
@@ -191,5 +193,7 @@ Targets, to be tuned on real data and reported honestly whether or not met:
 
 - Final product name and repository name.
 - Whether the page snapshot comes from the agent (proposed) or from a browser adapter.
-- Default model for BYOK mode.
+- Whether a model the user did not choose can be trusted for a decision it is confident
+  about: the default for BYOK mode is settled (`claude-haiku-4-5-20251001`), the confidence
+  that model reports about itself is not calibrated by anything in this project.
 - Who the first alpha users are.

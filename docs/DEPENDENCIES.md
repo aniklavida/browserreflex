@@ -20,6 +20,8 @@ Pattern pack loader (`packages/server/src/patterns/loader.ts`, 2026-10-04) uses 
 
 The `feedback` tool (`packages/server/src/tools/feedback.ts`, 2026-10-04) reuses the store repositories, the memory module and `redact`, and adds no dependency to this table.
 
+The BYOK provider adapters (`packages/server/src/adapters/`, 2026-10-04) call the Anthropic Messages API with the `fetch` built into Node 22 and the Node standard library only, so no provider SDK ships and this table is unchanged. The official Anthropic SDK was considered and not used: this server makes one POST per decision and reads one field of the response, and a package for that would add a dependency tree, its own release cycle and its own licences without removing a line of code. The structured answer is asked for with a forced tool call, which is a documented request field rather than anything the SDK would add.
+
 The local REST API and the built UI it serves (`packages/server/src/api/`, 2026-10-04) use only the Node standard library (`node:http`, `node:fs`, `node:path`), so it added no dependency to this table either. There is no web framework: the HTTP server, the router and the static file serving are written against `node:http`.
 
 | Package | Version | Licence | Type | Date Checked |
