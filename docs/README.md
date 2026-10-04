@@ -10,6 +10,7 @@ An index of the available documentation for BrowserReflex.
 |---|---|
 | [QUICKSTART.md](QUICKSTART.md) | Install from source, run `browserreflex-mcp init`, check `server_status`, chat mode vs BYOK mode, `browserreflex report` |
 | [TOOLS.md](TOOLS.md) | Tool reference for all eight served MCP tools: purpose, input fields, output fields, decision paths, example call and result |
+| [DOCKER.md](DOCKER.md) | MCP stdio server in a container: run command, sample config, limits (untested: written but never built or run) |
 | [PACKS.md](PACKS.md) | Pack authoring guide: YAML shape, matchers, safety flag, specificity and precedence, fixtures and how to add a rule |
 
 ## Specification and design
