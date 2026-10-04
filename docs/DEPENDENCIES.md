@@ -20,6 +20,8 @@ Pattern pack loader (`packages/server/src/patterns/loader.ts`, 2026-10-04) uses 
 
 The `feedback` tool (`packages/server/src/tools/feedback.ts`, 2026-10-04) reuses the store repositories, the memory module and `redact`, and adds no dependency to this table.
 
+The local REST API and the built UI it serves (`packages/server/src/api/`, 2026-10-04) use only the Node standard library (`node:http`, `node:fs`, `node:path`), so it added no dependency to this table either. There is no web framework: the HTTP server, the router and the static file serving are written against `node:http`.
+
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
 | `@modelcontextprotocol/sdk` | `^1.32.0` | MIT | production | 2026-10-04 |
