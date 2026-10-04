@@ -78,8 +78,8 @@ describe('MCP server over stdio', () => {
       version: SERVER_VERSION,
       transport: 'stdio',
       tool_names: listed.tools.map((entry) => entry.name),
-      decision_tools_status: 'partial',
-      planned_tools: ['action_guard'],
+      decision_tools_status: 'complete',
+      planned_tools: [],
       safety_check: 'advisory',
     });
     expect((result.content as { text: string }[])[0]?.text).toContain('advisory');

@@ -2,9 +2,11 @@
 
 Versioned YAML rules for the seven browser checks in the specification, plus the synthetic fixtures they are measured on.
 
-Status: **implemented and tested** for the rules, the pack loader path and the fixture suite (`packages/server/test/browser-pack.test.ts`). `page_check` serves these rules and is **implemented and tested** (`packages/server/test/page-check-tool.test.ts`); it asks exactly the canonical questions below. `action_guard`, the tool that answers one action, is **planned**.
+Status: **implemented and tested** for the rules, the pack loader path and the fixture suite (`packages/server/test/browser-pack.test.ts`). `page_check` serves these rules and is **implemented and tested** (`packages/server/test/page-check-tool.test.ts`); it asks exactly the canonical questions below. `action_guard`, the tool that answers one action, is **implemented and tested** for the three risky families (`packages/server/src/tools/action_guard.ts`, `packages/server/test/action-guard-tool.test.ts`).
 
 The safety check is **advisory**. A rule marked `safety: true` tells the caller to ask the user; nothing in this pack prevents an agent from acting, and an agent that never calls BrowserReflex is not stopped by it.
+
+`action_guard` does not depend on this pack for its payment, destructive and outbound verdicts: the same control text is compiled into the tool as built-in safety rules, so a payment or destructive action is `ask_user` on a server with no pack loaded. A pack rule that matches alongside a built-in one is reported in `rule_ids`, and the built-in rule is what the recorded `path` names.
 
 ## Checks and rules
 
