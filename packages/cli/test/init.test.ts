@@ -100,6 +100,9 @@ describe('runInit against a temporary home', () => {
       serverCommand: DEFAULT_COMMAND,
       now: NOW,
       startApi: fakeApi().startApi,
+      // A test that does not pass its own `openUrl` must never reach the real `open`, which
+      // would start a browser tab for every run. Tests that check the browser pass their own.
+      openUrl: fakeBrowser().openUrl,
       ...overrides,
     };
   }
