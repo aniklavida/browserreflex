@@ -62,6 +62,7 @@ export interface RuleOutput {
 export interface Rule {
   id: string;
   name?: string | undefined;
+  status?: string | undefined;
   description?: string | null | undefined;
   pack_id?: string | null | undefined;
   safety?: boolean | undefined;
@@ -76,6 +77,7 @@ export interface CompiledRule {
   id: string;
   rule: Rule;
   name?: string | undefined;
+  status?: string | undefined;
   pack_id?: string | null | undefined;
   is_safety: boolean;
   matchers: RuleMatchers;

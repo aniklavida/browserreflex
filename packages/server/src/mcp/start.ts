@@ -4,6 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { createMcpServer } from './server.js';
 import type { BrowserReflexMcpServer } from './server.js';
 import { resolveBrowserPackDirectory } from '../tools/page_check.js';
+import { resolveKeyStore, type KeyStore } from '../security/keys.js';
 
 /**
  * Starts the MCP server on stdio and wires shutdown.
@@ -17,7 +18,17 @@ import { resolveBrowserPackDirectory } from '../tools/page_check.js';
  * line makes a client fail to parse the stream. Diagnostics go to stderr.
  */
 export async function main(): Promise<BrowserReflexMcpServer> {
-  const built = await createMcpServer({ packsDirectory: resolveBrowserPackDirectory() });
+  let keyStore: KeyStore | undefined;
+  try {
+    const resolved = await resolveKeyStore();
+    keyStore = resolved.store;
+  } catch {
+    keyStore = undefined;
+  }
+  const built = await createMcpServer({
+    packsDirectory: resolveBrowserPackDirectory(),
+    ...(keyStore !== undefined ? { keyStore } : {}),
+  });
   const transport = new StdioServerTransport();
   await built.server.connect(transport);
 

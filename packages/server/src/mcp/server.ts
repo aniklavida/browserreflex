@@ -13,6 +13,8 @@ import {
   loadPackFiles,
   loadPacksFromDirectory,
 } from '../patterns/index.js';
+import type { KeyStore } from '../security/keys.js';
+import type { ModelAdapter } from '../adapters/types.js';
 
 /** Server name sent in the MCP handshake. */
 export const SERVER_NAME = 'browserreflex';
@@ -45,6 +47,10 @@ export interface CreateServerOptions {
   readonly packPaths?: readonly string[];
   /** Directory containing pattern pack YAML files to load. */
   readonly packsDirectory?: string;
+  /** Key store for BYOK provider keys. */
+  readonly keyStore?: KeyStore | undefined;
+  /** Provider adapter for BYOK mode. */
+  readonly adapter?: ModelAdapter | undefined;
 }
 
 export interface BrowserReflexMcpServer {
@@ -119,6 +125,8 @@ export async function createMcpServer(
     toolNames,
     store,
     patternEngine,
+    ...(options.keyStore !== undefined ? { keyStore: options.keyStore } : {}),
+    ...(options.adapter !== undefined ? { adapter: options.adapter } : {}),
   };
 
   const server = new McpServer({ name, version }, { instructions });

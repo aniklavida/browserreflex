@@ -393,6 +393,7 @@ export function compileRule(rule: Rule): CompiledRule {
     id: rule.id,
     rule,
     name: rule.name,
+    status: rule.status,
     pack_id: rule.pack_id,
     is_safety: isSafety,
     matchers,

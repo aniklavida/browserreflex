@@ -23,6 +23,10 @@ export interface ToolContext {
   readonly logDecision?: ((params: LogDecisionParams) => Decision) | undefined;
   /** Pattern engine instance for fast-path rule matching. */
   readonly patternEngine?: import('../../patterns/engine.js').PatternEngine | undefined;
+  /** Key store for BYOK provider keys. */
+  readonly keyStore?: import('../../security/keys.js').KeyStore | undefined;
+  /** Provider adapter for BYOK decisions. */
+  readonly adapter?: import('../../adapters/types.js').ModelAdapter | undefined;
 }
 
 /**

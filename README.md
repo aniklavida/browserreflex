@@ -27,8 +27,8 @@ BrowserReflex is a self-hosted MCP server with a small local web UI. It sits bes
 | `page_check` | implemented and tested |
 | `action_guard` | implemented and tested (advisory) |
 | Browser pattern pack (cookie banner, popups, login wall, captcha, payment, destructive and outbound actions) | rules and synthetic fixtures implemented and tested; served by `page_check` and, for the three risky families, `action_guard` |
-| Learning loop: capture, mine, shadow test, promote, re-check, demote | capture and the browser miner implemented and tested; shadow test, promote, re-check and demote planned |
-| Chat mode (no key) and bring-your-own-key mode | planned |
+| Learning loop: capture, mine, shadow test, promote, re-check, demote | capture, miners, calibration and shadow test implemented and tested; promote, re-check and demote planned |
+| Chat mode (no key) and bring-your-own-key mode | experimental (fixture-tested only) |
 | Local UI: setup wizard, dashboard, review queue, thresholds and safety, engines and keys | planned |
 | Measurement report command (`browserreflex report`) | implemented and tested |
 | Gate 3 alpha evaluation | not measured |
