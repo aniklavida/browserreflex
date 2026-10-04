@@ -40,6 +40,7 @@ import type {
   DecisionSignal,
   ShadowSampleSource,
 } from '../store/index.js';
+import { promoteCandidate } from './promote.js';
 
 export interface EvaluateShadowParams {
   store: DatabaseStore;
@@ -350,6 +351,16 @@ export function evaluateShadowCandidates(params: EvaluateShadowParams): ShadowEv
       source,
       agreed,
     });
+
+    // Promotion is evaluated after each recorded shadow sample
+    if (recordResult.recorded) {
+      try {
+        promoteCandidate({ store, patternId: pattern.id });
+      } catch (err) {
+        // Invariant: A failure in promotion must never fail submit_answers/feedback (log and continue)
+        console.error('[browserreflex promotion error]', err);
+      }
+    }
 
     samples.push({
       pattern_id: pattern.id,

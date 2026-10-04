@@ -341,3 +341,224 @@ export function previewRouting(
     },
   };
 }
+
+export const SETTINGS_KEY_PROMOTION_THRESHOLDS = 'promotion_thresholds';
+
+/** Minimum samples and agreement defaults for promotion */
+export const STANDARD_MIN_SAMPLES = 20;
+export const STANDARD_MIN_AGREEMENT = 0.95;
+export const SAFETY_MIN_SAMPLES = 50;
+export const SAFETY_MIN_AGREEMENT = 0.99;
+
+export interface PromotionThresholdConfig {
+  /** Minimum number of shadow test samples required. */
+  min_samples: number;
+  /** Minimum agreement ratio required (0.0 to 1.0). */
+  min_agreement: number;
+}
+
+export interface PromotionSettings {
+  /** Threshold for non-safety learned patterns. Default: 20 samples, 95% agreement. */
+  standard: PromotionThresholdConfig;
+  /** Threshold for safety-related patterns. Default: 50 samples, 99% agreement. */
+  safety: PromotionThresholdConfig;
+}
+
+export const DEFAULT_PROMOTION_THRESHOLDS: Readonly<PromotionSettings> = Object.freeze({
+  standard: Object.freeze({
+    min_samples: STANDARD_MIN_SAMPLES,
+    min_agreement: STANDARD_MIN_AGREEMENT,
+  }),
+  safety: Object.freeze({
+    min_samples: SAFETY_MIN_SAMPLES,
+    min_agreement: SAFETY_MIN_AGREEMENT,
+  }),
+});
+
+/**
+ * Validates and clamps promotion thresholds.
+ *
+ * Invariant: Never accept a threshold that would make promotion easier than the defaults
+ * for the safety-related case below 50 samples / 99% agreement, and clamp safety minimums
+ * so they can never be lower than the standard (non-safety) ones.
+ */
+export function validatePromotionThresholds(
+  config: Partial<PromotionSettings> | unknown,
+): PromotionSettings {
+  if (!config || typeof config !== 'object') {
+    throw new Error('Promotion threshold configuration must be an object.');
+  }
+
+  const raw = config as Partial<PromotionSettings>;
+  const rawStandard = raw.standard;
+  const rawSafety = raw.safety;
+
+  let standardMinSamples = STANDARD_MIN_SAMPLES;
+  if (rawStandard && rawStandard.min_samples !== undefined) {
+    const num = Number(rawStandard.min_samples);
+    if (!Number.isFinite(num) || num < 1) {
+      throw new Error(
+        `Invalid standard min_samples: ${String(rawStandard.min_samples)}. Must be >= 1.`,
+      );
+    }
+    standardMinSamples = Math.floor(num);
+  }
+
+  let standardMinAgreement = STANDARD_MIN_AGREEMENT;
+  if (rawStandard && rawStandard.min_agreement !== undefined) {
+    const conf = normalizeConfidence(rawStandard.min_agreement);
+    if (conf <= 0 || conf > 1) {
+      throw new Error(`Invalid standard min_agreement: ${conf}. Must be between 0 and 1.`);
+    }
+    standardMinAgreement = conf;
+  }
+
+  let safetyMinSamples = SAFETY_MIN_SAMPLES;
+  if (rawSafety && rawSafety.min_samples !== undefined) {
+    const num = Number(rawSafety.min_samples);
+    if (!Number.isFinite(num)) {
+      throw new Error(
+        `Invalid safety min_samples: ${String(rawSafety.min_samples)}. Must be a number.`,
+      );
+    }
+    const samples = Math.floor(num);
+    if (samples < SAFETY_MIN_SAMPLES) {
+      throw new Error(
+        `Safety promotion threshold min_samples cannot be less than ${SAFETY_MIN_SAMPLES} (cannot make safety promotion easier than default), got ${samples}.`,
+      );
+    }
+    safetyMinSamples = samples;
+  }
+
+  let safetyMinAgreement = SAFETY_MIN_AGREEMENT;
+  if (rawSafety && rawSafety.min_agreement !== undefined) {
+    const conf = normalizeConfidence(rawSafety.min_agreement);
+    if (conf < SAFETY_MIN_AGREEMENT) {
+      throw new Error(
+        `Safety promotion threshold min_agreement cannot be less than ${SAFETY_MIN_AGREEMENT} (99%) (cannot make safety promotion easier than default), got ${conf}.`,
+      );
+    }
+    safetyMinAgreement = conf;
+  }
+
+  // Safety minimums can never be lower than standard ones
+  if (safetyMinSamples < standardMinSamples) {
+    throw new Error(
+      `Safety min_samples (${safetyMinSamples}) cannot be lower than standard min_samples (${standardMinSamples}).`,
+    );
+  }
+
+  if (safetyMinAgreement < standardMinAgreement) {
+    throw new Error(
+      `Safety min_agreement (${safetyMinAgreement}) cannot be lower than standard min_agreement (${standardMinAgreement}).`,
+    );
+  }
+
+  // Extra fail-safe clamping
+  safetyMinSamples = Math.max(safetyMinSamples, standardMinSamples, SAFETY_MIN_SAMPLES);
+  safetyMinAgreement = Math.max(safetyMinAgreement, standardMinAgreement, SAFETY_MIN_AGREEMENT);
+
+  return {
+    standard: {
+      min_samples: standardMinSamples,
+      min_agreement: standardMinAgreement,
+    },
+    safety: {
+      min_samples: safetyMinSamples,
+      min_agreement: safetyMinAgreement,
+    },
+  };
+}
+
+/**
+ * Reads promotion threshold settings from the store's settings repository.
+ *
+ * Sane defaults are returned if nothing is stored or on invalid configuration,
+ * with safety minimums clamped so they cannot be lower than 50 samples / 99% agreement
+ * or standard thresholds.
+ */
+export function getPromotionThresholds(store: DatabaseStore): PromotionSettings {
+  const stored = store.settings.getJson<Record<string, unknown>>(SETTINGS_KEY_PROMOTION_THRESHOLDS);
+
+  if (!stored || typeof stored !== 'object') {
+    return {
+      standard: { ...DEFAULT_PROMOTION_THRESHOLDS.standard },
+      safety: { ...DEFAULT_PROMOTION_THRESHOLDS.safety },
+    };
+  }
+
+  try {
+    return validatePromotionThresholds(stored);
+  } catch {
+    // If stored configuration is invalid or corrupted, sanitize and clamp to safe bounds
+    const rawStandard = stored.standard as Partial<PromotionThresholdConfig> | undefined;
+    const rawSafety = stored.safety as Partial<PromotionThresholdConfig> | undefined;
+
+    const stdSamples =
+      typeof rawStandard?.min_samples === 'number' && rawStandard.min_samples >= 1
+        ? Math.floor(rawStandard.min_samples)
+        : STANDARD_MIN_SAMPLES;
+
+    let stdAgreement = STANDARD_MIN_AGREEMENT;
+    try {
+      if (typeof rawStandard?.min_agreement === 'number') {
+        stdAgreement = normalizeConfidence(rawStandard.min_agreement);
+      }
+    } catch {
+      stdAgreement = STANDARD_MIN_AGREEMENT;
+    }
+
+    const safeSamples = Math.max(
+      SAFETY_MIN_SAMPLES,
+      stdSamples,
+      typeof rawSafety?.min_samples === 'number'
+        ? Math.floor(rawSafety.min_samples)
+        : SAFETY_MIN_SAMPLES,
+    );
+
+    let safeAgreement = SAFETY_MIN_AGREEMENT;
+    try {
+      if (typeof rawSafety?.min_agreement === 'number') {
+        safeAgreement = normalizeConfidence(rawSafety.min_agreement);
+      }
+    } catch {
+      safeAgreement = SAFETY_MIN_AGREEMENT;
+    }
+    safeAgreement = Math.max(SAFETY_MIN_AGREEMENT, stdAgreement, safeAgreement);
+
+    return {
+      standard: {
+        min_samples: stdSamples,
+        min_agreement: stdAgreement,
+      },
+      safety: {
+        min_samples: safeSamples,
+        min_agreement: safeAgreement,
+      },
+    };
+  }
+}
+
+/**
+ * Persists updated promotion thresholds in settings after validation.
+ */
+export function setPromotionThresholds(
+  store: DatabaseStore,
+  thresholds: Partial<PromotionSettings>,
+): PromotionSettings {
+  const current = getPromotionThresholds(store);
+  const toValidate: PromotionSettings = {
+    standard: {
+      ...current.standard,
+      ...(thresholds.standard ?? {}),
+    },
+    safety: {
+      ...current.safety,
+      ...(thresholds.safety ?? {}),
+    },
+  };
+
+  const validated = validatePromotionThresholds(toValidate);
+  store.settings.setJson(SETTINGS_KEY_PROMOTION_THRESHOLDS, validated);
+  return validated;
+}
