@@ -208,6 +208,27 @@ export function registerExtraRoutes(
       errorResponse(res, 403, 'A safety rule cannot be switched from here');
       return;
     }
+    if (store.promotionEvents.listByPatternId(id).length === 0 && body.status === 'disabled') {
+      // A written pack rule has only a stub row. Marking the stub disabled would change what
+      // the page says and nothing the engine does, so it is refused rather than faked.
+      errorResponse(
+        res,
+        409,
+        'This is a rule written in a pack. Switch its pack off on the Packs page instead; a safety rule stays on either way.',
+      );
+      return;
+    }
+    if (
+      body.status === 'active' &&
+      store.driftAlerts.list({ pattern_id: id, status: 'active' }).length > 0
+    ) {
+      errorResponse(
+        res,
+        409,
+        'A drift alert is open for this pattern. Acknowledge or resolve it first, then switch the pattern on.',
+      );
+      return;
+    }
     if (body.status === 'active' && store.promotionEvents.listByPatternId(id).length === 0) {
       errorResponse(
         res,
@@ -528,7 +549,7 @@ export function registerExtraRoutes(
   router.get('/api/export/decisions.csv', async (req, res) => {
     const q = parseQuery(req.url ?? '/');
     const filter: Parameters<DatabaseStore['decisions']['list']>[0] = {
-      limit: intParam(q.limit, 5000, 1, 20_000),
+      limit: intParam(q.limit, 20_000, 1, 20_000),
     };
     if (q.q !== undefined) filter.search = q.q.slice(0, 200);
     if (q.from !== undefined) filter.created_from = q.from;

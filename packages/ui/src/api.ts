@@ -56,6 +56,7 @@ export interface Pattern {
   status: string;
   confidence: number | null;
   is_safety: number;
+  rules?: string;
   created_at: string;
   updated_at: string;
 }
@@ -63,10 +64,101 @@ export interface Pattern {
 export interface Pack {
   id: string;
   name: string;
-  version: string | null;
+  version: string;
   description: string | null;
-  source: string | null;
-  active: number;
+  is_active: number;
+}
+
+export interface PatternStat {
+  pattern_id: string;
+  sample_count: number;
+  agreed_count: number;
+  disagreed_count: number;
+}
+
+export interface SessionRow {
+  id: string;
+  agent_name: string | null;
+  decisions: number;
+  fast: number;
+  ai: number;
+  human: number;
+  first_at: string;
+  last_at: string;
+}
+
+export interface KeyInfo {
+  provider: string;
+  has_key: boolean;
+  masked: string;
+  backend: string;
+}
+
+export interface KeyTestResult {
+  ok: boolean;
+  provider: string;
+  model?: string;
+  latency_ms?: number;
+  error?: string;
+}
+
+export interface DataInfo {
+  database_file: string | null;
+  size_bytes: number | null;
+  decisions: number;
+  oldest_decision: string | null;
+  retention_days: number | null;
+  backups: { file: string; size_bytes: number; modified_at: string }[];
+}
+
+export interface Client {
+  id: string;
+  label: string;
+  config_file: string;
+  found: boolean;
+  configured: boolean;
+}
+
+export interface QualityBin {
+  lower: number;
+  upper: number;
+  count: number;
+  stated: number | null;
+  actual: number | null;
+}
+
+export interface Quality {
+  corrected_decisions: number;
+  bins: QualityBin[];
+  wrong_most: { pattern_id: string; wrong: number; total: number }[];
+}
+
+export interface SafetyAnalytics {
+  note: string;
+  by_family: Record<string, number>;
+  by_answer: Record<string, number>;
+  risky_places: { domain: string; total: number }[];
+}
+
+export interface AgentsAnalytics {
+  agents: { agent: string; decisions: number; fast: number }[];
+  projects: { project: string; decisions: number; fast: number }[];
+}
+
+export interface DriftAlert {
+  id: string;
+  pattern_id: string;
+  accuracy: number;
+  threshold: number;
+  status: string;
+  message: string;
+  created_at: string;
+}
+
+export interface Drift {
+  threshold: number;
+  alerts: DriftAlert[];
+  patterns: { pattern_id: string; rechecks: number; accuracy: number | null }[];
 }
 
 export interface Setting {
@@ -129,6 +221,38 @@ export const api = {
   putSetting: (key: string, value: unknown) =>
     request<unknown>('PUT', '/api/settings', { key, value }),
   packs: () => request<Page<Pack>>('GET', '/api/packs?limit=100'),
+  setPack: (id: string, active: boolean) =>
+    request<{ pack: Pack; note: string }>('PUT', `/api/packs/${encodeURIComponent(id)}`, {
+      active,
+    }),
+  setPattern: (id: string, status: 'active' | 'disabled') =>
+    request<{ pattern: Pattern }>('PUT', `/api/patterns/${encodeURIComponent(id)}`, { status }),
+  patternStats: () => request<{ items: PatternStat[] }>('GET', '/api/pattern-stats'),
+  sessions: () => request<{ items: SessionRow[] }>('GET', '/api/sessions?limit=100'),
+  keys: () => request<{ items: KeyInfo[] }>('GET', '/api/keys'),
+  putKey: (provider: string, key: string) =>
+    request<KeyInfo>('PUT', '/api/keys', { provider, key }),
+  deleteKey: (provider: string) =>
+    request<{ removed: boolean }>('DELETE', `/api/keys/${encodeURIComponent(provider)}`),
+  testKey: (provider: string) => request<KeyTestResult>('POST', '/api/keys/test', { provider }),
+  data: () => request<DataInfo>('GET', '/api/data'),
+  backup: () =>
+    request<{ file: string; size_bytes: number; created_at: string }>('POST', '/api/backup'),
+  purge: (days: number) =>
+    request<{ deleted: number; cutoff: string }>('POST', '/api/retention/purge', {
+      days,
+      confirm: true,
+    }),
+  integrations: () => request<{ clients: Client[] }>('GET', '/api/integrations'),
+  quality: (from?: string) =>
+    request<Quality>('GET', `/api/analytics/quality${toQuery(from ? { from } : {})}`),
+  safety: (from?: string) =>
+    request<SafetyAnalytics>('GET', `/api/analytics/safety${toQuery(from ? { from } : {})}`),
+  agents: (from?: string) =>
+    request<AgentsAnalytics>('GET', `/api/analytics/agents${toQuery(from ? { from } : {})}`),
+  drift: () => request<Drift>('GET', '/api/drift'),
+  setDrift: (id: string, status: 'acknowledged' | 'resolved') =>
+    request<unknown>('PUT', `/api/drift/${encodeURIComponent(id)}`, { status }),
   patterns: (query: Record<string, string | number> = {}) =>
     request<Page<Pattern>>('GET', `/api/patterns${toQuery({ limit: 500, ...query })}`),
 };

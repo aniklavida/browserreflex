@@ -10,7 +10,7 @@ Fast, typed answers to the small decisions a browser agent makes again and again
 | CLI commands (`init`, `serve`, `report`) | **implemented and tested** on macOS; Linux and Windows are **experimental** |
 | Agent configuration layouts written by `init` | **experimental** (written to published conventions; unverified against live agent runs) |
 | Chat mode (no key) and Bring-Your-Own-Key (BYOK) mode | **experimental** (fixture-tested only; live provider calls unsupported / not tested) |
-| Local web UI | shell and seven pages **implemented and tested** against a mocked API, never run against a live agent; the other pages and entering a key in the browser are **planned** |
+| Local web UI | every page **implemented and tested** against a mocked API, never run against a live agent; the provider connection test is **experimental**; importing a pack file and PDF reports are **planned** |
 | Enforcement of safety rules inside agent hosts | **unsupported** |
 
 ## Honest limits
@@ -156,7 +156,7 @@ In chat mode:
 Status: **experimental** (fixture-tested only; live provider calls unsupported / not tested).
 
 In BYOK mode:
-1. A provider API key is stored securely in the system keychain (or an encrypted file fallback using AES-256-GCM with `0600` permissions). Provider keys are never written to the database, logs, or tool outputs.
+1. A provider API key (entered on the Engines page of the UI) is stored securely in the system keychain (or an encrypted file fallback using AES-256-GCM with `0600` permissions). Provider keys are never written to the database, logs, or tool outputs.
 2. When `decide` encounters an unknown question, it resolves `needs_ai` directly by calling the configured model provider adapter.
 3. The Anthropic adapter uses the default model `claude-haiku-4-5-20251001` (`DEFAULT_ANTHROPIC_MODEL`), bounded by timeouts and retry policies. Other provider adapters (OpenAI, Gemini, OpenRouter, Ollama) are **planned**.
 4. The model output is strictly validated against the typed schema. Valid answers are recorded in SQLite with path `ai`, measured latency, and model confidence. Invalid outputs or network errors safely fall back to `needs_ai` and are never stored as corrupted answers.

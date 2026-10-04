@@ -104,6 +104,15 @@ export function errorResponse(res: ServerResponse, status: number, message: stri
 }
 
 /** Parses a query string into a record. */
+/** Decodes a query component; a malformed escape is kept as written rather than throwing. */
+function safeDecode(text: string): string {
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text;
+  }
+}
+
 export function parseQuery(url: string): Record<string, string> {
   const idx = url.indexOf('?');
   if (idx === -1) return {};
@@ -112,8 +121,8 @@ export function parseQuery(url: string): Record<string, string> {
   for (const pair of qs.split('&')) {
     const eq = pair.indexOf('=');
     if (eq === -1) continue;
-    const key = decodeURIComponent(pair.slice(0, eq).replace(/\+/g, ' '));
-    const val = decodeURIComponent(pair.slice(eq + 1).replace(/\+/g, ' '));
+    const key = safeDecode(pair.slice(0, eq).replace(/\+/g, ' '));
+    const val = safeDecode(pair.slice(eq + 1).replace(/\+/g, ' '));
     result[key] = val;
   }
   return result;

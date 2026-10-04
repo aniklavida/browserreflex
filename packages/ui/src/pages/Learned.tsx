@@ -11,6 +11,15 @@ import { useApi } from '../useApi';
 
 type Filter = 'all' | 'active' | 'shadow' | 'disabled';
 
+/**
+ * A learned pattern has rules of its own. The decision log writes a stub row (empty rules) for
+ * every rule that answers, pack rules included, and those are not something BrowserReflex
+ * learned.
+ */
+export function isLearned(pattern: Pattern): boolean {
+  return pattern.rules !== undefined && pattern.rules !== '{}' && pattern.rules !== '';
+}
+
 export function filterPatterns(patterns: readonly Pattern[], filter: Filter): Pattern[] {
   const rows = filter === 'all' ? [...patterns] : patterns.filter((p) => p.status === filter);
   return rows.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
@@ -36,8 +45,9 @@ export function Learned() {
     return <div className="page muted">Loading…</div>;
   }
 
-  const rows = filterPatterns(patterns.data.items, filter);
-  const today = patterns.data.items.filter((pattern) => changedToday(pattern));
+  const learned = patterns.data.items.filter(isLearned);
+  const rows = filterPatterns(learned, filter);
+  const today = learned.filter((pattern) => changedToday(pattern));
 
   return (
     <div className="page">

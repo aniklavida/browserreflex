@@ -10,9 +10,9 @@ process as the REST API, on `127.0.0.1`. English only.
 | App shell: sidebar with four groups and badges, header with the API status and a Local only badge, collapse behind a Menu button below 1280px | **implemented and tested** |
 | Theme: dark by default, light option, kept in `localStorage`, every colour in `src/theme.css` | **implemented and tested** |
 | Shared components (path badge, confidence, probability bar, metric grid, segmented control, square toggle, table row, drawer, toast, empty state) | **implemented and tested** |
-| Pages: Dashboard, Review queue, Learned, Analytics (overview), Thresholds + safety, Engines + keys, Setup wizard | **implemented and tested** against a mocked API; never run against a live agent |
-| Entering a provider key in the browser, Test connection | **planned** |
-| Pages: Live activity, Logs, Task replay, Patterns inspector, Pattern packs, Reports, Integrations, Settings; Analytics quality, safety, agents and drift tabs | **planned** |
+| Pages: Dashboard, Live activity, Review queue, Patterns, Packs, Learned, Analytics (overview, quality, safety, agents and projects, drift), Logs, Task replay, Reports, Thresholds + safety, Engines + keys, Integrations, Settings, Setup wizard | **implemented and tested** against a mocked API; checked once by hand against the real API, never run against a live agent |
+| Storing, testing and removing a provider key in the browser | **implemented and tested** with a mocked API and, in the server, a fake tester; the real connection test is **experimental** and was never run against a live provider |
+| Keys for providers other than Anthropic; importing a pack file; PDF reports; restoring a backup; team mode; webhooks and a public REST decide endpoint | **planned** |
 
 The safety check is advisory. The UI shows what the API reports and records answers. It does
 not stop an agent from acting, and the safety gates it lists cannot be switched off here.

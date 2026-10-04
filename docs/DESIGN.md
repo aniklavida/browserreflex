@@ -1,6 +1,6 @@
 # BrowserReflex: design
 
-Status: the shell, the shared components and seven pages are **implemented and tested** in `packages/ui` against a mocked API (see its README). The remaining pages are **planned**. This document is the design direction.
+Status: the shell, the shared components and every page in this design are **implemented and tested** in `packages/ui` against a mocked API (see its README). Importing a pack, PDF reports, other providers and team mode are **planned**. This document is the design direction.
 
 The UI is served by the same process as the MCP server on `127.0.0.1`, in English only. People use it for setup, for reviewing low-confidence answers and for checking what BrowserReflex has learned; they do not need to open it every day.
 
