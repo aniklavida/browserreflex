@@ -47,7 +47,9 @@ import type { ZodRawShape } from 'zod';
 import type { DecisionType } from '../core/schema.js';
 import { getDefaultStore } from '../core/log.js';
 import { captureDecisionSignals } from '../learning/capture.js';
+import { completeRecheck } from '../learning/monitor.js';
 import { evaluateShadowCandidates } from '../learning/shadow.js';
+import type { PatternEngine } from '../patterns/index.js';
 import { redact } from '../security/redact.js';
 import type {
   DatabaseStore,
@@ -103,6 +105,8 @@ export interface FeedbackContext {
   store?: DatabaseStore | undefined;
   session?: Session | undefined;
   sessionId?: string | undefined;
+  /** The live engine, so a demotion stops serving the pattern at once. */
+  patternEngine?: PatternEngine | undefined;
 }
 
 export interface FeedbackInput {
@@ -391,6 +395,19 @@ export async function executeFeedback(
   } catch (error) {
     // Log and continue: a failure inside shadow evaluation must not fail the tool call
     console.error('[browserreflex shadow error]', error);
+  }
+
+  try {
+    completeRecheck({
+      store,
+      decisionId: decision.id,
+      slowAnswer: storedText,
+      source: 'feedback',
+      engine: context.patternEngine,
+    });
+  } catch (error) {
+    // Log and continue: a failure inside re-check must not fail the tool call
+    console.error('[browserreflex monitor error]', error);
   }
 
   return {

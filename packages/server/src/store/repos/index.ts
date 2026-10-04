@@ -8,3 +8,6 @@ export { PatternStatsRepo } from './pattern-stats.js';
 export { SettingsRepo } from './settings.js';
 export { ShadowSampleRepo } from './shadow-samples.js';
 export { PromotionEventRepo } from './promotion-events.js';
+export { RecheckRepo } from './rechecks.js';
+export { DemotionEventRepo } from './demotion-events.js';
+export { DriftAlertRepo } from './drift-alerts.js';

@@ -70,3 +70,4 @@ export * from './patterns/index.js';
 export * from './adapters/index.js';
 export * from './learning/shadow.js';
 export * from './learning/promote.js';
+export * from './learning/monitor.js';

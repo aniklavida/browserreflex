@@ -184,6 +184,25 @@ export interface GetStatsOutput {
   /** Nearest rank over every decision in range. `null` when empty. */
   readonly p95_latency_ms: number | null;
   readonly time_saved_estimate: TimeSavedEstimate;
+  /** Learned patterns the monitor disabled. A current state, not limited to the range. */
+  readonly drift_alerts: DriftAlertSummary;
+}
+
+/** The most recent active drift alerts reported by `get_stats`. */
+export const DRIFT_ALERT_LIST_LIMIT = 10;
+
+export interface DriftAlertSummary {
+  /** Active alerts, however many there are. */
+  readonly active: number;
+  /** The newest `DRIFT_ALERT_LIST_LIMIT` active alerts. */
+  readonly items: readonly {
+    readonly id: string;
+    readonly pattern_id: string;
+    readonly accuracy: number;
+    readonly threshold: number;
+    readonly message: string;
+    readonly created_at: string;
+  }[];
 }
 
 export const getStatsInputSchema: ZodRawShape = {
@@ -246,6 +265,19 @@ export const getStatsOutputSchema: ZodRawShape = {
     fast_answers_counted: z.number().int().min(0),
     assumed_model_call_seconds: z.number().positive(),
     note: z.string(),
+  }),
+  drift_alerts: z.object({
+    active: z.number().int().min(0),
+    items: z.array(
+      z.object({
+        id: z.string(),
+        pattern_id: z.string(),
+        accuracy: z.number(),
+        threshold: z.number(),
+        message: z.string(),
+        created_at: z.string(),
+      }),
+    ),
   }),
 };
 
@@ -379,6 +411,22 @@ export function executeGetStats(
     median_latency_ms: median,
     p95_latency_ms: p95,
     time_saved_estimate: buildTimeSavedEstimate(fastPathDecisions),
+    drift_alerts: summariseDriftAlerts(store),
+  };
+}
+
+function summariseDriftAlerts(store: DatabaseStore): DriftAlertSummary {
+  const active = store.driftAlerts.list({ status: 'active' });
+  return {
+    active: active.length,
+    items: active.slice(0, DRIFT_ALERT_LIST_LIMIT).map((alert) => ({
+      id: alert.id,
+      pattern_id: alert.pattern_id,
+      accuracy: alert.accuracy,
+      threshold: alert.threshold,
+      message: alert.message,
+      created_at: alert.created_at,
+    })),
   };
 }
 

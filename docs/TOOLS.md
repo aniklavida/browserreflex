@@ -706,6 +706,7 @@ The field `time_saved_estimate` computes:
 | `median_latency_ms` | `number \| null` | Median latency across all decisions in range. |
 | `p95_latency_ms` | `number \| null` | 95th percentile latency (nearest rank). |
 | `time_saved_estimate` | `TimeSavedEstimate` | Estimated time saved calculation. |
+| `drift_alerts` | `{ active: number, items: [...] }` | Active drift alerts: learned patterns the monitor disabled after their re-checks fell under 90% agreement. A current state, not limited to the range. `items` holds the newest ten with `id`, `pattern_id`, `accuracy`, `threshold`, `message`, `created_at`. |
 
 ### Example call
 ```json
