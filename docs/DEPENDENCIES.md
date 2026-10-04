@@ -22,6 +22,8 @@ The `feedback` tool (`packages/server/src/tools/feedback.ts`, 2026-10-04) reuses
 
 Signal extraction on capture (`packages/server/src/learning/capture.ts`, 2026-10-04) uses the Node standard library, the internal pattern matchers and `redact`, and adds no dependency to this table.
 
+Confidence calibration (`packages/server/src/learning/calibrate.ts`, 2026-10-04) reads the store's own `feedback` and `decisions` tables and bins the numbers in memory. It uses the Node standard library and internal types only, so it adds no dependency to this table.
+
 The BYOK provider adapters (`packages/server/src/adapters/`, 2026-10-04) call the Anthropic Messages API with the `fetch` built into Node 22 and the Node standard library only, so no provider SDK ships and this table is unchanged. The official Anthropic SDK was considered and not used: this server makes one POST per decision and reads one field of the response, and a package for that would add a dependency tree, its own release cycle and its own licences without removing a line of code. The structured answer is asked for with a forced tool call, which is a documented request field rather than anything the SDK would add.
 
 The local REST API and the built UI it serves (`packages/server/src/api/`, 2026-10-04) use only the Node standard library (`node:http`, `node:fs`, `node:path`), so it added no dependency to this table either. There is no web framework: the HTTP server, the router and the static file serving are written against `node:http`.
