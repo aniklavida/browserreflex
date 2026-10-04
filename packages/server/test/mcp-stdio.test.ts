@@ -54,6 +54,7 @@ describe('MCP server over stdio', () => {
 
     expect(listed.tools.map((entry) => entry.name).sort()).toEqual(expected);
     expect(expected).toContain('server_status');
+    expect(expected).toContain('page_check');
   }, 30_000);
 
   it('serves the instructions text to the client', () => {
@@ -77,9 +78,11 @@ describe('MCP server over stdio', () => {
       version: SERVER_VERSION,
       transport: 'stdio',
       tool_names: listed.tools.map((entry) => entry.name),
-      decision_tools_status: 'planned',
+      decision_tools_status: 'partial',
+      planned_tools: ['action_guard'],
       safety_check: 'advisory',
     });
+    expect((result.content as { text: string }[])[0]?.text).toContain('advisory');
   }, 30_000);
 
   it('writes its startup diagnostics to stderr, leaving stdout to the protocol', () => {

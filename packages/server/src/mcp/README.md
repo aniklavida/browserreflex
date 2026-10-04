@@ -10,9 +10,9 @@ The MCP server: stdio transport, the tool registry and the `instructions` field.
 | Tool registry: one `*.tool.ts` file per tool, discovered by directory listing | **implemented and tested** |
 | `instructions` field served from placeholder text in `skill/` | **implemented and tested** |
 | `server_status` tool | **implemented and tested** |
-| `decide`, `submit_answers`, `feedback`, `get_pending_reviews`, `get_stats` tools | **implemented and tested** |
+| `decide`, `page_check`, `submit_answers`, `feedback`, `get_pending_reviews`, `get_stats` tools | **implemented and tested** |
 | HTTP transport | **planned** |
-| The remaining decision tools (`page_check`, `action_guard`) | **planned** |
+| The remaining decision tool (`action_guard`) | **planned** |
 | The full skill text | **planned** (Phase 1) |
 
 The safety check is advisory. Nothing in this server prevents an agent from acting; it
@@ -45,6 +45,11 @@ node packages/server/dist/mcp/start.js
 
 stdout carries the protocol and nothing else; diagnostics go to stderr.
 
+`start.ts` loads the browser pattern pack at start-up through the pack loader, so the tools
+that answer from its rules have them. A pack that fails to load is a stderr warning and a
+`packs.errors` entry in the `page_check` answer; the server still starts and serves the
+rules that did load.
+
 To look at it with the official inspector:
 
 ```sh
@@ -63,4 +68,5 @@ discovery and the refusal cases with fixture tool files.
 Each decision tool has its own file, and each of those files also drives the tool over a
 real MCP client against a temporary database: `decide-tool.test.ts`,
 `submit-answers-tool.test.ts`, `feedback-tool.test.ts`, `reviews-tool.test.ts`
-(`get_pending_reviews`) and `stats-tool.test.ts` (`get_stats`).
+(`get_pending_reviews`), `stats-tool.test.ts` (`get_stats`) and `page-check-tool.test.ts`
+(`page_check`).

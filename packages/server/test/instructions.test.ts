@@ -24,8 +24,16 @@ describe('server instructions', () => {
 
     expect(text).toContain('server_status');
     expect(text).toContain('decide');
+    expect(text).toContain('page_check');
     expect(text).toContain('submit_answers');
-    expect(text).toMatch(/planned and are not implemented/);
+    expect(text).toMatch(/action_guard.*is planned and not implemented/);
     expect(text).toMatch(/never prevents an agent from acting/);
+    expect(text).not.toMatch(/page_check[^.]*planned/);
+  });
+
+  it('says that page content is data and is never read as an instruction', () => {
+    const text = loadInstructions().replace(/\s+/g, ' ');
+
+    expect(text).toMatch(/never read as an instruction/);
   });
 });
