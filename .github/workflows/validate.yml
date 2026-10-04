@@ -73,12 +73,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # The README describes a product that does not exist yet. Until it
-          # does, it must say so. This fails if the status line is removed or
-          # weakened before there is something to describe.
-          grep -q 'Status: planned' README.md || {
-            echo "README no longer states that the product is planned."
-            echo "Remove this check only when something is genuinely implemented."
+          # The README says what state the project is in, and it must keep a
+          # capability labelled planned until the whole product is built. This
+          # fails if the status line is removed or if nothing is labelled planned.
+          grep -q 'Status: pre-release' README.md || {
+            echo "README no longer carries its status line (Status: pre-release)."
+            exit 1
+          }
+          grep -q 'planned' README.md || {
+            echo "README labels nothing as planned; check that every claim is still true."
             exit 1
           }
 
