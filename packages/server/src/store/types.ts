@@ -323,3 +323,100 @@ export interface PromotionEventFilter {
   limit?: number;
   offset?: number;
 }
+
+export interface Recheck {
+  id: string;
+  decision_id: string;
+  pattern_id: string;
+  pattern_answer: string;
+  status: 'pending' | 'completed';
+  agreed: number | null;
+  recheck_answer: string | null;
+  source: string | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface InsertRecheck {
+  id?: string;
+  decision_id: string;
+  pattern_id: string;
+  pattern_answer: string;
+  status?: 'pending' | 'completed';
+  agreed?: number | boolean | null;
+  recheck_answer?: string | null;
+  source?: string | null;
+  created_at?: string;
+  completed_at?: string | null;
+}
+
+export interface RecheckFilter {
+  pattern_id?: string;
+  decision_id?: string;
+  status?: 'pending' | 'completed';
+  limit?: number;
+  offset?: number;
+}
+
+export interface DemotionEvent {
+  id: string;
+  pattern_id: string;
+  sample_count: number;
+  agreed_count: number;
+  disagreed_count: number;
+  accuracy: number;
+  threshold: number;
+  reason: string;
+  created_at: string;
+}
+
+export interface InsertDemotionEvent {
+  id?: string;
+  pattern_id: string;
+  sample_count: number;
+  agreed_count: number;
+  disagreed_count: number;
+  accuracy: number;
+  threshold: number;
+  reason: string;
+  created_at?: string;
+}
+
+export interface DemotionEventFilter {
+  pattern_id?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface DriftAlert {
+  id: string;
+  pattern_id: string;
+  sample_count: number;
+  agreed_count: number;
+  disagreed_count: number;
+  accuracy: number;
+  threshold: number;
+  status: 'active' | 'acknowledged' | 'resolved' | string;
+  message: string;
+  created_at: string;
+}
+
+export interface InsertDriftAlert {
+  id?: string;
+  pattern_id: string;
+  sample_count: number;
+  agreed_count: number;
+  disagreed_count: number;
+  accuracy: number;
+  threshold: number;
+  status?: string;
+  message: string;
+  created_at?: string;
+}
+
+export interface DriftAlertFilter {
+  pattern_id?: string;
+  status?: string;
+  limit?: number;
+  offset?: number;
+}

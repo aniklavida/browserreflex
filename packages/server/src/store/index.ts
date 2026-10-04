@@ -3,11 +3,14 @@ import { openDatabase, type DatabaseConnectionOptions } from './connection.js';
 import { runMigrations } from './migrations/index.js';
 import {
   DecisionRepo,
+  DemotionEventRepo,
+  DriftAlertRepo,
   FeedbackRepo,
   PackRepo,
   PatternRepo,
   PatternStatsRepo,
   PromotionEventRepo,
+  RecheckRepo,
   SessionRepo,
   SettingsRepo,
   ShadowSampleRepo,
@@ -35,6 +38,9 @@ export class DatabaseStore {
   public readonly shadowSamples: ShadowSampleRepo;
   public readonly promotionEvents: PromotionEventRepo;
   public readonly settings: SettingsRepo;
+  public readonly rechecks: RecheckRepo;
+  public readonly demotionEvents: DemotionEventRepo;
+  public readonly driftAlerts: DriftAlertRepo;
 
   constructor(dbPath?: string, options?: DatabaseConnectionOptions) {
     this.db = openDatabase(dbPath, options);
@@ -49,6 +55,9 @@ export class DatabaseStore {
     this.shadowSamples = new ShadowSampleRepo(this.db);
     this.promotionEvents = new PromotionEventRepo(this.db);
     this.settings = new SettingsRepo(this.db);
+    this.rechecks = new RecheckRepo(this.db);
+    this.demotionEvents = new DemotionEventRepo(this.db);
+    this.driftAlerts = new DriftAlertRepo(this.db);
   }
 
   runMigrations(): number {

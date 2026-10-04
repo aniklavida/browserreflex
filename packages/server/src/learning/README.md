@@ -12,7 +12,8 @@ patterns.
 | Mine, text keyword | **implemented and tested** | `test/miner-text.test.ts` |
 | Confidence calibration | **implemented and tested** | `test/calibrate.test.ts` |
 | Shadow test | **implemented and tested** | `test/shadow.test.ts` |
-| Promote, monitor, demote | **planned** | none; nothing is served |
+| Promote | **implemented and tested** | `test/promote.test.ts` |
+| Re-check, demote, drift alert | **implemented and tested** | `test/monitor.test.ts` |
 
 ## Capture
 
@@ -114,7 +115,7 @@ What it holds to, in one line each:
   safety check is advisory, and nothing here prevents an agent from acting.
 - Tool integration: hooked into `submit_answers` and `feedback` end to end; any failure
   inside shadow evaluation is logged and does not fail the tool call.
-- Promotion, monitoring, and demotion remain **planned**.
+- Promotion is described below; re-check, demotion and drift alerts are in the Monitor section.
 
 ## Promote
 
@@ -134,4 +135,34 @@ shadow sample and can be called over every candidate. What it holds to, in one l
   `submit_answers` or `feedback`.
 - **A known limit:** promoted patterns are loaded into the fast path when the MCP server
   starts, so a pattern promoted during a session is served after the next start.
-- Re-check, demotion and drift alerts are **planned**.
+
+## Monitor: re-check, demote, drift alert
+
+`monitor.ts` watches the learned patterns that promotion made active. A learned pattern is
+one with a promotion event: the decision log writes a stub pattern row for every rule that
+answers, pack rules and safety rules included, so a row alone is not enough, and a rule
+with no promotion event is never re-checked, demoted or disabled. What it holds to, in one
+line each:
+
+- **Re-check.** `decide` samples 2% of the answers that came from an active learned pattern
+  (`monitor.recheck_rate`; the random source is injectable so tests are deterministic). The
+  answer is returned unchanged. A sampled decision gets a pending re-check row and is flagged
+  `needs_review`, so `get_pending_reviews` lists it.
+- **Completing a re-check.** The sampled decision already holds the pattern's answer, so
+  `submit_answers` does not apply. `feedback` completes it: the correct value is compared
+  with the pattern's answer and recorded as agree or disagree in the re-check row. The
+  re-check outcome is not added to `pattern_stats` a second time.
+- **Demote.** When the last 20 completed re-checks (`monitor.recheck_window`) agree less
+  than 90% of the time (`monitor.demotion_threshold`, never set below 90%), the pattern is
+  set to `disabled`, removed from the live engine without a restart, and a demotion event
+  and a drift alert are written, in one transaction. It is idempotent. Fewer than 20 completed
+  re-checks never demotes.
+- **Drift alert.** Active alerts are reported by `get_stats` in `drift_alerts` (a count and
+  the newest ten). The alert says which pattern was disabled and why.
+- A pack rule or a safety rule is never demoted by this module. The safety check is advisory:
+  it reports a request to the user and does not stop an agent from acting.
+- A failure in re-check or demotion is logged and never fails `decide` or `feedback`.
+- **A known limit:** the re-check outcome only arrives if the agent or the user answers the
+  pending review with `feedback`. A re-check nobody answers stays pending and counts for
+  nothing. Promoted patterns load into the live engine at server start, so one promoted
+  during a session is served after the next start.

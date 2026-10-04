@@ -72,6 +72,17 @@ export class PatternEngine {
   }
 
   /**
+   * Removes a single rule by ID from the engine without requiring a restart.
+   * Used by the monitor to disable a demoted learned pattern immediately.
+   * Returns true if the rule was found and removed, false if it was not loaded.
+   */
+  removeRule(ruleId: string): boolean {
+    const before = this.compiledRules.length;
+    this.compiledRules = this.compiledRules.filter((r) => r.id !== ruleId);
+    return this.compiledRules.length < before;
+  }
+
+  /**
    * Returns all raw rules currently loaded.
    */
   getRules(): readonly Rule[] {

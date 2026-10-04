@@ -47,6 +47,7 @@ import {
   resolveNeedsAi,
 } from '../adapters/index.js';
 import type { KeyStore } from '../security/keys.js';
+import { sampleForRecheck } from '../learning/monitor.js';
 
 export interface DecideInput {
   questions: unknown[];
@@ -67,6 +68,8 @@ export interface DecideContext {
   keyStore?: KeyStore | undefined;
   adapter?: ModelAdapter | undefined;
   now?: (() => number) | undefined;
+  /** Random source for re-check sampling; injected by tests. Defaults to Math.random. */
+  random?: (() => number) | undefined;
 }
 
 export const decideInputSchema: ZodRawShape = {
@@ -197,6 +200,27 @@ export async function executeDecide(
     url,
     patternEngine: context.patternEngine,
   });
+
+  // Sample a small share of answers from active learned patterns for re-check. The answer
+  // already chosen is returned unchanged; a failure here never fails the call.
+  for (const answer of result.answers) {
+    if (answer.path !== 'pattern' || !answer.pattern_id) {
+      continue;
+    }
+    try {
+      sampleForRecheck(
+        {
+          store,
+          decisionId: answer.decision_id,
+          patternId: answer.pattern_id,
+          patternAnswer: String(answer.value),
+        },
+        context.random,
+      );
+    } catch (error) {
+      console.error('[browserreflex monitor error]', error);
+    }
+  }
 
   if (result.needs_ai.length === 0) {
     return result;

@@ -3,6 +3,7 @@ import { migration001 } from './001_initial_schema.js';
 import { migration002 } from './002_decision_signals.js';
 import { migration003 } from './003_shadow_samples.js';
 import { migration004 } from './004_promotion_events.js';
+import { migration005 } from './005_rechecks_and_drift_alerts.js';
 
 export interface Migration {
   version: number;
@@ -10,7 +11,13 @@ export interface Migration {
   up: (db: Database.Database) => void;
 }
 
-export const MIGRATIONS: Migration[] = [migration001, migration002, migration003, migration004];
+export const MIGRATIONS: Migration[] = [
+  migration001,
+  migration002,
+  migration003,
+  migration004,
+  migration005,
+];
 
 export function runMigrations(db: Database.Database): number {
   db.exec(`
