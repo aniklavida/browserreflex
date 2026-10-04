@@ -24,6 +24,13 @@ describe('license compliance checker', () => {
     expect(isLicenseAllowed('')).toBe(false);
   });
 
+  it('allows bundled font assets under OFL-1.1 via explicit allowlist only', () => {
+    expect(isLicenseAllowed('OFL-1.1', '@fontsource/archivo')).toBe(true);
+    expect(isLicenseAllowed('OFL-1.1', '@fontsource/dm-mono')).toBe(true);
+    expect(isLicenseAllowed('OFL-1.1', 'other-package')).toBe(false);
+    expect(isLicenseAllowed('OFL-1.1')).toBe(false);
+  });
+
   it('detects violations in package lists', () => {
     const { checked, violations } = validatePackageList([
       { name: 'good-lib', version: '1.0.0', license: 'MIT' },

@@ -612,6 +612,39 @@ describe('GET /api/stats', () => {
     expect(decisions.fast_path_share).toBeCloseTo(2 / 3, 4);
   });
 
+  it('counts the active drift alerts, and not the ones that were resolved', async () => {
+    const api = await startTestServer();
+    expect(
+      ((await request(`${api.url}/api/stats`)).json() as Record<string, unknown>).drift_alerts,
+    ).toEqual({
+      active: 0,
+    });
+
+    api.store.patterns.create({
+      id: 'learned-drift',
+      name: 'learned-drift',
+      decision_type: 'check',
+      rules: '{}',
+      status: 'disabled',
+      confidence: 0.9,
+      is_safety: false,
+    });
+    const base = {
+      pattern_id: 'learned-drift',
+      sample_count: 20,
+      agreed_count: 10,
+      disagreed_count: 10,
+      accuracy: 0.5,
+      threshold: 0.9,
+      message: 'disabled',
+    };
+    api.store.driftAlerts.create({ ...base, status: 'active' });
+    api.store.driftAlerts.create({ ...base, status: 'resolved' });
+
+    const body = (await request(`${api.url}/api/stats`)).json() as Record<string, unknown>;
+    expect(body.drift_alerts).toEqual({ active: 1 });
+  });
+
   it('reports no latency or token figure, because none is measured', async () => {
     const api = await startTestServer();
 

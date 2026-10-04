@@ -37,12 +37,19 @@ The local REST API and the built UI it serves (`packages/server/src/api/`, 2026-
 
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
+| `@fontsource/archivo` | `^5.3.0` | OFL-1.1 | production (bundled font assets, not code) | 2026-10-04 |
+| `@fontsource/dm-mono` | `^5.3.0` | OFL-1.1 | production (bundled font assets, not code) | 2026-10-04 |
 | `@modelcontextprotocol/sdk` | `^1.32.0` | MIT | production | 2026-10-04 |
 | `@napi-rs/keyring` | `^2.1.0` | MIT | production | 2026-10-04 |
 | `ajv` | `^8.20.0` | MIT | production | 2026-10-04 |
 | `better-sqlite3` | `^13.0.3` | MIT | production | 2026-10-04 |
+| `react` | `^19.3.0` | MIT | production | 2026-10-04 |
+| `react-dom` | `^19.3.0` | MIT | production | 2026-10-04 |
+| `react-router-dom` | `^7.18.4` | MIT | production | 2026-10-04 |
 | `yaml` | `^2.9.1` | ISC | production | 2026-10-04 |
 | `zod` | `^3.25.76` | MIT | production | 2026-10-04 |
+
+The local web UI (`packages/ui`, 2026-10-04) bundles `@fontsource/archivo` and `@fontsource/dm-mono` under SIL Open Font License 1.1 (OFL-1.1). These are static typography assets, not code, bundled into the distribution so that zero remote font requests occur at runtime. `scripts/check-licenses.mjs` explicitly allowlists these two packages with OFL-1.1.
 
 The CLI package (`packages/cli`, published name `browserreflex-mcp`, 2026-10-04) declares one production dependency: `@browserreflex/server`, which is a workspace package and not an npm download, so there is no licence to record for it. Its argument parsing, its JSON and TOML merging, its file writing with backups and its browser launcher (`packages/cli/src/args.ts`, `config-json.ts`, `config-toml.ts`, `config-write.ts`, `open-url.ts`) are written against the Node standard library (`node:fs`, `node:path`, `node:child_process`, `node:url`) and add no entry to the table above. `pnpm check-licenses` was re-run on 2026-10-04 after that package was added and passed.
 
@@ -79,13 +86,19 @@ Development tools are not shipped to end-users or bundled in production packages
 | Package | Version | Licence | Type | Date Checked |
 |---|---|---|---|---|
 | `@eslint/js` | `^9.20.0` | MIT | dev-only | 2026-10-04 |
+| `@testing-library/react` | `^16.3.3` | MIT | dev-only | 2026-10-04 |
 | `@types/better-sqlite3` | `^9.6.0` | MIT | dev-only | 2026-10-04 |
 | `@types/node` | `^22.13.4` | MIT | dev-only | 2026-10-04 |
+| `@types/react` | `^19.3.0` | MIT | dev-only | 2026-10-04 |
+| `@types/react-dom` | `^19.3.0` | MIT | dev-only | 2026-10-04 |
+| `@vitejs/plugin-react` | `^6.1.1` | MIT | dev-only | 2026-10-04 |
 | `eslint` | `^9.20.0` | MIT | dev-only | 2026-10-04 |
+| `jsdom` | `^30.1.1` | MIT | dev-only | 2026-10-04 |
 | `prettier` | `^3.5.1` | MIT | dev-only | 2026-10-04 |
 | `tsx` | `^4.23.15` | MIT | dev-only (runs the server from TypeScript in the stdio tests) | 2026-10-04 |
 | `typescript` | `~5.8.3` | Apache-2.0 | dev-only | 2026-10-04 |
 | `typescript-eslint` | `^8.24.0` | MIT | dev-only | 2026-10-04 |
+| `vite` | `^8.3.2` | MIT | dev-only | 2026-10-04 |
 | `vitest` | `^3.0.5` | MIT | dev-only | 2026-10-04 |
 
 The MCP inspector was used by hand to check the server (`npx
