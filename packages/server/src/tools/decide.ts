@@ -38,6 +38,7 @@ import {
   routeBatch,
 } from '../core/router.js';
 import { createMemory } from '../core/memory.js';
+import { syncEngineWithStore } from '../learning/sync.js';
 import { getDefaultStore, type DatabaseStore, type Session } from '../index.js';
 import type { PatternEngine } from '../patterns/index.js';
 import {
@@ -187,6 +188,16 @@ export async function executeDecide(
   const rawQuestions = Array.isArray(args.questions) ? args.questions : [];
   const threshold = typeof args.threshold === 'number' ? args.threshold : undefined;
   const url = typeof args.url === 'string' ? args.url : undefined;
+
+  // A pack switched off or a pattern disabled in the UI, and a pattern promoted since
+  // start-up, take effect on this call. A failure here never fails the call.
+  if (context.patternEngine) {
+    try {
+      syncEngineWithStore(store, context.patternEngine);
+    } catch (error) {
+      console.error('[browserreflex sync error]', error);
+    }
+  }
 
   const result = routeBatch({
     questions: rawQuestions,

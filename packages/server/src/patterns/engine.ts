@@ -82,6 +82,27 @@ export class PatternEngine {
     return this.compiledRules.length < before;
   }
 
+  private disabledPacks: ReadonlySet<string> = new Set();
+
+  /**
+   * Switches packs off. A switched-off pack's NON-safety rules are not served, so those
+   * answers fall back to the slow path; its safety rules keep working, because a safety
+   * rule is never something a switch turns off.
+   */
+  setDisabledPacks(packIds: ReadonlySet<string>): void {
+    this.disabledPacks = packIds;
+  }
+
+  getDisabledPacks(): ReadonlySet<string> {
+    return this.disabledPacks;
+  }
+
+  private isSwitchedOff(rule: CompiledRule): boolean {
+    return (
+      !rule.is_safety && typeof rule.pack_id === 'string' && this.disabledPacks.has(rule.pack_id)
+    );
+  }
+
   /**
    * Returns all raw rules currently loaded.
    */
@@ -115,6 +136,9 @@ export class PatternEngine {
       if (rule.status === 'shadow' || rule.rule.status === 'shadow') {
         continue;
       }
+      if (this.isSwitchedOff(rule)) {
+        continue;
+      }
       if (matchRule(rule, snapshot, this.maxRegexInputLength)) {
         return {
           rule: rule.rule,
@@ -136,6 +160,9 @@ export class PatternEngine {
     const results: PatternMatchResult[] = [];
     for (const rule of this.compiledRules) {
       if (rule.status === 'shadow' || rule.rule.status === 'shadow') {
+        continue;
+      }
+      if (this.isSwitchedOff(rule)) {
         continue;
       }
       if (matchRule(rule, snapshot, this.maxRegexInputLength)) {
@@ -178,6 +205,9 @@ export class PatternEngine {
     for (const rule of this.compiledRules) {
       // 0. Shadow rules are never served
       if (rule.status === 'shadow' || rule.rule.status === 'shadow') {
+        continue;
+      }
+      if (this.isSwitchedOff(rule)) {
         continue;
       }
 

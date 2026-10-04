@@ -67,7 +67,7 @@ describe('promotion rules (learning/promote.ts)', () => {
       is_safety: Boolean(options.isSafety),
     };
 
-    return store.patterns.create({
+    const created = store.patterns.create({
       id: options.id,
       name: `Candidate ${options.id}`,
       decision_type: decisionType,
@@ -77,6 +77,18 @@ describe('promotion rules (learning/promote.ts)', () => {
       is_safety: options.isSafety ? 1 : 0,
       pack_id: options.packId ?? null,
     });
+    if (options.status === 'active') {
+      // A pattern that is active because promotion made it so has a promotion event.
+      store.promotionEvents.create({
+        pattern_id: options.id,
+        sample_count: 25,
+        agreement: 1,
+        threshold_samples: 20,
+        threshold_agreement: 0.95,
+        thresholds: {},
+      });
+    }
+    return created;
   }
 
   function simulateSamples(patternId: string, total: number, agreed: number) {

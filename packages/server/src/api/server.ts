@@ -27,6 +27,7 @@ import type { DatabaseStore } from '../store/index.js';
 import { isCorsAllowed, isLocalRequest, rejectForbidden } from './guard.js';
 import { ApiRouter } from './router.js';
 import { errorResponse, HttpError } from './http.js';
+import { registerExtraRoutes, type ApiDeps } from './extra.js';
 import { createStaticUiHandler } from './static-ui.js';
 import {
   handleGetStats,
@@ -47,7 +48,7 @@ export const API_BIND_HOST = '127.0.0.1';
 /** Default port. Port 0 asks the operating system for a free one. */
 export const DEFAULT_API_PORT = 4040;
 
-export interface ApiServerOptions {
+export interface ApiServerOptions extends ApiDeps {
   /** Port to listen on. Defaults to 4040; 0 asks the operating system. */
   readonly port?: number;
   /**
@@ -74,7 +75,7 @@ export interface ApiServerHandle {
 }
 
 /** Builds the router for the store. Exported so a test can reach a route directly. */
-export function createApiRouter(store: DatabaseStore): ApiRouter {
+export function createApiRouter(store: DatabaseStore, deps: ApiDeps = {}): ApiRouter {
   const router = new ApiRouter();
   router.get('/api/stats', handleGetStats(store));
   router.get('/api/decisions', handleListDecisions(store));
@@ -88,6 +89,7 @@ export function createApiRouter(store: DatabaseStore): ApiRouter {
   router.put('/api/settings', handlePutSettings(store));
   router.get('/api/packs', handleGetPacks(store));
   router.get('/api/patterns', handleGetPatterns(store));
+  registerExtraRoutes(router, store, deps);
   return router;
 }
 
@@ -95,6 +97,7 @@ export interface RequestListenerOptions {
   readonly store: DatabaseStore;
   readonly allowedOrigins: readonly string[];
   readonly staticDir?: string | undefined;
+  readonly deps?: ApiDeps | undefined;
 }
 
 /**
@@ -104,7 +107,7 @@ export interface RequestListenerOptions {
  * without a socket, and so the refusal path is testable on its own.
  */
 export function createRequestListener(options: RequestListenerOptions) {
-  const router = createApiRouter(options.store);
+  const router = createApiRouter(options.store, options.deps ?? {});
   const staticUi =
     options.staticDir === undefined
       ? undefined
@@ -190,6 +193,12 @@ export async function startApiServer(
       store,
       allowedOrigins,
       staticDir: options.staticDir,
+      deps: {
+        keyStore: options.keyStore,
+        keyTester: options.keyTester,
+        home: options.home,
+        streamPollMs: options.streamPollMs,
+      },
     }),
   );
 

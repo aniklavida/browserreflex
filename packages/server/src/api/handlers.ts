@@ -81,6 +81,10 @@ export function handleListDecisions(store: DatabaseStore) {
     if (q.session_id !== undefined) filter.session_id = q.session_id;
     if (q.domain !== undefined) filter.domain = q.domain;
     if (q.path !== undefined) filter.path = q.path as DecisionPath;
+    if (q.pattern_id !== undefined) filter.pattern_id = q.pattern_id;
+    if (q.from !== undefined) filter.created_from = q.from;
+    if (q.to !== undefined) filter.created_to = q.to;
+    if (q.q !== undefined) filter.search = q.q.slice(0, 200);
     const needsReview = boolParam(q.needs_review);
     if (needsReview !== undefined) filter.needs_review = needsReview;
     const isSafety = boolParam(q.is_safety);

@@ -647,6 +647,17 @@ export function loadActivePatternsIntoEngine(engine: PatternEngine, store: Datab
   const loadedRules: Rule[] = [];
 
   for (const pattern of activePatterns) {
+    // Only a pattern that promotion made active is a learned rule. The decision log writes a
+    // stub row (status active, empty rules) for every rule that answers, pack rules and
+    // safety rules included, and loading one would replace the real rule with an empty one.
+    if (store.promotionEvents.listByPatternId(pattern.id).length === 0) {
+      continue;
+    }
+    // A pack rule is never replaced by a stored row that carries its id.
+    if (engine.getRules().some((existing) => existing.id === pattern.id && existing.pack_id)) {
+      continue;
+    }
+
     let rawRule: unknown;
     try {
       rawRule = JSON.parse(pattern.rules);
@@ -659,6 +670,11 @@ export function loadActivePatternsIntoEngine(engine: PatternEngine, store: Datab
     }
 
     const ruleObj = rawRule as Record<string, unknown>;
+    const matcherKeys = Object.keys((ruleObj.matchers ?? {}) as Record<string, unknown>);
+    if (matcherKeys.length === 0) {
+      // A rule that matches on nothing would match everything.
+      continue;
+    }
     const rawOutput = (ruleObj.output ?? {}) as Record<string, unknown>;
     const decisionType = (rawOutput.type ?? rawOutput.decision_type ?? pattern.decision_type) as
       DecisionType | undefined;
