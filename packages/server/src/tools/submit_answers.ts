@@ -37,6 +37,7 @@ import {
 } from '../core/schema.js';
 import { updateDecisionLog } from '../core/log.js';
 import { captureDecisionSignals } from '../learning/capture.js';
+import { evaluateShadowCandidates } from '../learning/shadow.js';
 import { getDefaultStore, type DatabaseStore, type Session } from '../index.js';
 
 export interface ValidatedAnswerItem {
@@ -423,6 +424,17 @@ export async function executeSubmitAnswers(
       // captured. Nothing is captured when no answer was stored.
       if (updated !== null) {
         captureDecisionSignals({ store, decision: updated, source: 'slow_path_answer' });
+        try {
+          evaluateShadowCandidates({
+            store,
+            decision: updated,
+            source: 'slow_answer',
+            recordedAnswer: obj.value as string | number | boolean,
+          });
+        } catch (error) {
+          // Log and continue: a failure inside shadow evaluation must not fail the tool call
+          console.error('[browserreflex shadow error]', error);
+        }
       }
 
       answers.push({
@@ -451,6 +463,17 @@ export async function executeSubmitAnswers(
       // Same slow path, same capture: the answer is stored with path 'ai' either way.
       if (updated !== null) {
         captureDecisionSignals({ store, decision: updated, source: 'slow_path_answer' });
+        try {
+          evaluateShadowCandidates({
+            store,
+            decision: updated,
+            source: 'slow_answer',
+            recordedAnswer: obj.value as string | number | boolean,
+          });
+        } catch (error) {
+          // Log and continue: a failure inside shadow evaluation must not fail the tool call
+          console.error('[browserreflex shadow error]', error);
+        }
       }
 
       needs_human.push({
