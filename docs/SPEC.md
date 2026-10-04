@@ -124,7 +124,7 @@ Every answer includes `decision_id`, `confidence`, `path` and, when applicable, 
 
 ## Skill
 
-One short instruction set ships three ways so any agent can use it: a `SKILL.md`, an `AGENTS.md` snippet and the MCP server's own `instructions` field. It tells the agent when to call BrowserReflex (on each new page, before any click, submit or delete), when to think for itself, how to write questions, what to do on `needs_ai`, and that an `ask_user` result is never skipped.
+One short instruction set ships three ways so any agent can use it: a `SKILL.md` (with YAML frontmatter for Claude), an `AGENTS.md` snippet and the MCP server's own `instructions` field. It tells the agent when to call BrowserReflex (on each new page, before any click, submit or delete), how to write questions, what to do on `needs_ai` and `needs_human`, how to read confidence, and that an `ask_user` result is never skipped. The safety check is advisory. The skill text and snippet are **implemented and tested** as text and drift-checked; agent adherence is **not measured** (the Gate 1 check is pending).
 
 ## Local UI
 

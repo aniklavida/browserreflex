@@ -8,11 +8,11 @@ The MCP server: stdio transport, the tool registry and the `instructions` field.
 |---|---|
 | stdio server entry (`start.ts`), run as `browserreflex-mcp` | **implemented and tested** |
 | Tool registry: one `*.tool.ts` file per tool, discovered by directory listing | **implemented and tested** |
-| `instructions` field served from placeholder text in `skill/` | **implemented and tested** |
+| `instructions` field served from shared skill source of truth | **implemented and tested** |
 | `server_status` tool | **implemented and tested** |
 | `decide`, `page_check`, `submit_answers`, `action_guard`, `feedback`, `get_pending_reviews`, `get_stats` tools | **implemented and tested** |
+| Skill (`SKILL.md`) and `AGENTS.md` snippet | **implemented and tested** as text and drift-checked; agent adherence: not measured (Gate 1 check pending) |
 | HTTP transport | **planned** |
-| The full skill text | **planned** (Phase 1) |
 
 The safety check is advisory. Nothing in this server prevents an agent from acting; it
 reports a request for the user and real enforcement belongs in the agent host's own
@@ -29,11 +29,15 @@ was built with.
 
 ## Instructions text
 
-`instructions.ts` serves the text in `skill/index.ts`. It is a TypeScript string rather
-than a Markdown file so the compiled server carries it with no copy step; the full skill
-(`SKILL.md` and an `AGENTS.md` snippet) is Phase 1 work and replaces it. Text that does not
-say the safety check is advisory is refused rather than served, because an agent reads
-that field and AGENTS.md requires the wording.
+`instructions.ts` serves the shared instructions body, which is embedded in
+`skill/body.generated.ts` so the compiled server needs no file at run time. That module is
+generated from `packages/skill/SKILL.md` (frontmatter stripped); to change the text, edit
+`SKILL.md` and run `pnpm run check-skill -- --sync`, which also rewrites
+`packages/skill/AGENTS.md`. `skill/index.ts` re-exports the loaded text as `SKILL_TEXT`.
+`scripts/check-skill-drift.mjs` and `packages/server/test/instructions.test.ts` fail when
+`SKILL.md`, `AGENTS.md` and the embedded body differ.
+Text that does not say the safety check is advisory is refused rather than served, because
+an agent reads that field and AGENTS.md requires the wording.
 
 ## Running it
 

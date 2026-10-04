@@ -1,6 +1,12 @@
 {
   "name": "@browserreflex/skill",
   "version": "0.1.0",
+  "license": "MIT",
   "private": true,
-  "description": "Agent instructions and skill definitions for BrowserReflex"
+  "type": "module",
+  "description": "Agent instructions and skill definitions for BrowserReflex",
+  "files": [
+    "SKILL.md",
+    "AGENTS.md"
+  ]
 }

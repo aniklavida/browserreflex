@@ -11,7 +11,8 @@
     "test": "vitest run",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
-    "check-licenses": "node scripts/check-licenses.mjs"
+    "check-licenses": "node scripts/check-licenses.mjs",
+    "check-skill": "node scripts/check-skill-drift.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
