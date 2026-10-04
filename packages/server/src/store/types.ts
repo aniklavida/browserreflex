@@ -83,6 +83,13 @@ export interface DecisionFilter {
   needs_review?: boolean;
   is_safety?: boolean;
   input_hash?: string;
+  pattern_id?: string;
+  /** Inclusive lower bound on `created_at` (an ISO timestamp). */
+  created_from?: string;
+  /** Exclusive upper bound on `created_at` (an ISO timestamp). */
+  created_to?: string;
+  /** A literal text search over the question and the answer. */
+  search?: string;
   limit?: number;
   offset?: number;
 }

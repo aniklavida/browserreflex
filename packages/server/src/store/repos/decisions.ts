@@ -85,7 +85,8 @@ export class DecisionRepo {
     return row ?? null;
   }
 
-  list(filter: DecisionFilter = {}): Decision[] {
+  /** The WHERE clause and parameters for a filter, shared by `list` and `count`. */
+  private where(filter: DecisionFilter): { clause: string; params: unknown[] } {
     const conditions: string[] = [];
     const params: unknown[] = [];
 
@@ -113,12 +114,35 @@ export class DecisionRepo {
       conditions.push('input_hash = ?');
       params.push(filter.input_hash);
     }
-
-    let query = 'SELECT * FROM decisions';
-    if (conditions.length > 0) {
-      query += ` WHERE ${conditions.join(' AND ')}`;
+    if (filter.pattern_id !== undefined) {
+      conditions.push('pattern_id = ?');
+      params.push(filter.pattern_id);
     }
-    query += ' ORDER BY created_at DESC';
+    if (filter.created_from !== undefined) {
+      conditions.push('created_at >= ?');
+      params.push(filter.created_from);
+    }
+    if (filter.created_to !== undefined) {
+      conditions.push('created_at < ?');
+      params.push(filter.created_to);
+    }
+    if (filter.search !== undefined && filter.search !== '') {
+      // A literal search: the wildcard characters in the text are escaped, so a search for
+      // "50%" finds "50%" and not everything.
+      const like = `%${filter.search.replace(/[\\%_]/g, (character) => `\\${character}`)}%`;
+      conditions.push("(question LIKE ? ESCAPE '\\' OR answer LIKE ? ESCAPE '\\')");
+      params.push(like, like);
+    }
+
+    return {
+      clause: conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '',
+      params,
+    };
+  }
+
+  list(filter: DecisionFilter = {}): Decision[] {
+    const { clause, params } = this.where(filter);
+    let query = `SELECT * FROM decisions${clause} ORDER BY created_at DESC`;
 
     if (filter.limit !== undefined) {
       query += ' LIMIT ?';
@@ -133,40 +157,10 @@ export class DecisionRepo {
   }
 
   count(filter: DecisionFilter = {}): number {
-    const conditions: string[] = [];
-    const params: unknown[] = [];
-
-    if (filter.session_id !== undefined) {
-      conditions.push('session_id = ?');
-      params.push(filter.session_id);
-    }
-    if (filter.domain !== undefined) {
-      conditions.push('domain = ?');
-      params.push(filter.domain);
-    }
-    if (filter.path !== undefined) {
-      conditions.push('path = ?');
-      params.push(filter.path);
-    }
-    if (filter.needs_review !== undefined) {
-      conditions.push('needs_review = ?');
-      params.push(filter.needs_review ? 1 : 0);
-    }
-    if (filter.is_safety !== undefined) {
-      conditions.push('is_safety = ?');
-      params.push(filter.is_safety ? 1 : 0);
-    }
-    if (filter.input_hash !== undefined) {
-      conditions.push('input_hash = ?');
-      params.push(filter.input_hash);
-    }
-
-    let query = 'SELECT COUNT(*) as total FROM decisions';
-    if (conditions.length > 0) {
-      query += ` WHERE ${conditions.join(' AND ')}`;
-    }
-
-    const row = this.db.prepare(query).get(...params) as { total: number };
+    const { clause, params } = this.where(filter);
+    const row = this.db
+      .prepare(`SELECT COUNT(*) as total FROM decisions${clause}`)
+      .get(...params) as { total: number };
     return row.total;
   }
 

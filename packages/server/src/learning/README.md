@@ -133,8 +133,10 @@ shadow sample and can be called over every candidate. What it holds to, in one l
 - Promotion is one transaction, is idempotent, and writes a promotion event with the
   samples, agreement and thresholds used. A failure in promotion is logged and never fails
   `submit_answers` or `feedback`.
-- **A known limit:** promoted patterns are loaded into the fast path when the MCP server
-  starts, so a pattern promoted during a session is served after the next start.
+- Promoted patterns are loaded into the fast path at server start, and `sync.ts` adds one
+  promoted during a session on the next `decide` or `page_check`, and removes one disabled
+  in the store. Only a pattern with a promotion event is ever loaded: the decision log writes
+  a stub row for every rule that answers, and loading a stub would replace the real rule.
 
 ## Monitor: re-check, demote, drift alert
 
@@ -164,5 +166,11 @@ line each:
 - A failure in re-check or demotion is logged and never fails `decide` or `feedback`.
 - **A known limit:** the re-check outcome only arrives if the agent or the user answers the
   pending review with `feedback`. A re-check nobody answers stays pending and counts for
-  nothing. Promoted patterns load into the live engine at server start, so one promoted
-  during a session is served after the next start.
+  nothing.
+
+## Sync with the store
+
+`sync.ts` keeps a live engine in step with the store, so a switch made in the UI (the REST
+API runs in another process than the MCP server) takes effect on the next call. A pack
+switched off has its non-safety rules skipped and its safety rules kept. A learned pattern is
+served only while the store says `active` and it has a promotion event.

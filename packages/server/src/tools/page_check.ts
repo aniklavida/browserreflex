@@ -54,6 +54,7 @@ import {
   type PatternEngine,
   type Rule,
 } from '../patterns/index.js';
+import { syncEngineWithStore } from '../learning/sync.js';
 import { redact } from '../security/redact.js';
 
 /**
@@ -815,6 +816,11 @@ export async function executePageCheck(
   const memory = createMemory(store);
   const session = context.session ?? context.sessionId ?? null;
   const packs = resolvePageCheckPacks(context);
+  try {
+    syncEngineWithStore(store, packs.engine);
+  } catch (error) {
+    console.error('[browserreflex sync error]', error);
+  }
   const page = readPageInput(args, PAGE_CHECK_BOUNDS);
   const domain = hostnameOf(page.url);
   const input: Record<string, unknown> = {

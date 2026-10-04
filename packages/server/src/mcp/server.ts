@@ -18,6 +18,33 @@ import type { KeyStore } from '../security/keys.js';
 import type { ModelAdapter } from '../adapters/types.js';
 
 /** Server name sent in the MCP handshake. */
+/**
+ * Writes one `packs` row per loaded pack, so the UI can list the packs and switch them.
+ * A new pack starts switched on; an existing row keeps its switch and only has its name,
+ * version and description refreshed, so a restart never undoes a choice made in the UI.
+ */
+export function registerLoadedPacks(store: DatabaseStore, packs: readonly LoadedPack[]): void {
+  for (const pack of packs) {
+    const manifest = pack.manifest;
+    const existing = store.packs.getById(manifest.id);
+    if (existing === null) {
+      store.packs.create({
+        id: manifest.id,
+        name: manifest.name,
+        version: manifest.version,
+        description: manifest.description ?? null,
+        is_active: 1,
+      });
+    } else {
+      store.packs.update(manifest.id, {
+        name: manifest.name,
+        version: manifest.version,
+        description: manifest.description ?? null,
+      });
+    }
+  }
+}
+
 export const SERVER_NAME = 'browserreflex';
 
 /**
@@ -117,6 +144,8 @@ export async function createMcpServer(
       process.stderr.write(`[browserreflex pack warning] ${err.formatted}\n`);
     }
   }
+
+  registerLoadedPacks(store, loadedPacks);
 
   // Load promoted (active) learned patterns from the store into the pattern engine
   loadActivePatternsIntoEngine(patternEngine, store);

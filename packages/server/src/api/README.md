@@ -29,6 +29,21 @@ All responses are JSON, snake_case, served on `127.0.0.1`.
 | PUT | `/api/settings` | Stores `{ key, value }`; refuses a credential name or a value carrying a secret |
 | GET | `/api/packs` | Pattern packs; filter `active`, `limit`, `offset` |
 | GET | `/api/patterns` | Learned and written patterns; filters `pack_id`, `domain`, `status`, `decision_type`, `is_safety`, `limit`, `offset` |
+| GET | `/api/decisions?q=&from=&to=&pattern_id=` | The same page of decisions, also filtered by a literal text search over the question and the answer, a time range (`to` is exclusive) and a pattern |
+| GET | `/api/stream` | A server-sent event stream: one `decision` event for each decision recorded after the stream opened (polled once a second) |
+| GET | `/api/sessions` | One row per session with its agent, decision count, fast, model and person counts, first and last time |
+| PUT | `/api/packs/:id` | `{ active: boolean }`. A pack that is off stops answering with its non-safety rules; its safety rules keep working |
+| PUT | `/api/patterns/:id` | `{ status: "active" \| "disabled" }`. A safety pattern is refused (403); only a pattern promotion made active can be switched on |
+| GET | `/api/pattern-stats` | Sample, agree and disagree counts per pattern |
+| GET / PUT / DELETE | `/api/keys`, `/api/keys/:provider` | Whether a provider key is stored and its masked form; store or remove one. The key itself is never returned |
+| POST | `/api/keys/test` | One small call to the provider with the stored key. Experimental: never run against a live provider by the test suite |
+| GET | `/api/data` | The database file name and size, decision count, oldest decision, retention setting and recent backups |
+| POST | `/api/backup` | Writes a consistent backup into a `backups` folder beside the database |
+| POST | `/api/retention/purge` | `{ days, confirm: true }` deletes decisions older than `days` days. Not undoable |
+| GET | `/api/integrations` | Which supported agents have a BrowserReflex entry in their configuration file |
+| GET | `/api/analytics/quality`, `/safety`, `/agents` | Stated confidence against what turned out right; safety records by family; decisions by agent and project |
+| GET / PUT | `/api/drift`, `/api/drift/:id` | Re-check accuracy per pattern and the drift alerts; acknowledge or resolve an alert |
+| GET | `/api/export/decisions.csv` | A CSV of decisions; a cell that starts like a formula is prefixed so a spreadsheet will not run it |
 
 Anything else under `/api/` answers 404. Anything outside `/api/` is served from
 the configured UI directory when there is one.
@@ -40,7 +55,9 @@ the configured UI directory when there is one.
   the Host header names a loopback host, so a name that resolves to 127.0.0.1 is
   refused. A browser request carrying an Origin must name an allowed local origin.
   A refused request runs no handler.
-- **A credential never reaches the API or the settings table.** A setting whose
+- **A provider key is stored by `PUT /api/keys` and nowhere else.** It goes to the operating
+  system keychain (or the encrypted file), and no route, log line or error returns it.
+- **A credential never reaches the settings table.** A setting whose
   name signals a credential reads as `[redacted]`, a value the redaction rules
   would mask is masked whatever its name, and a write of either is refused rather
   than stored. Provider keys belong in the operating system keychain, which is
