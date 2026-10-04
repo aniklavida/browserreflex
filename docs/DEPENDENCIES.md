@@ -38,6 +38,8 @@ The local REST API and the built UI it serves (`packages/server/src/api/`, 2026-
 | `yaml` | `^2.9.1` | ISC | production | 2026-10-04 |
 | `zod` | `^3.25.76` | MIT | production | 2026-10-04 |
 
+The CLI package (`packages/cli`, published name `browserreflex-mcp`, 2026-10-04) declares one production dependency: `@browserreflex/server`, which is a workspace package and not an npm download, so there is no licence to record for it. Its argument parsing, its JSON and TOML merging, its file writing with backups and its browser launcher (`packages/cli/src/args.ts`, `config-json.ts`, `config-toml.ts`, `config-write.ts`, `open-url.ts`) are written against the Node standard library (`node:fs`, `node:path`, `node:child_process`, `node:url`) and add no entry to the table above. `pnpm check-licenses` was re-run on 2026-10-04 after that package was added and passed.
+
 ## Key storage
 
 `packages/server/src/security/keys.ts` (2026-10-04) uses `@napi-rs/keyring` for the operating system keychain backend and only the Node standard library (`node:crypto`, `node:fs`) for the AES-256-GCM encrypted file backend.
