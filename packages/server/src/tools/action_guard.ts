@@ -262,7 +262,7 @@ const PAYMENT_TEXT = compileRegex(
     String.raw`|\bcheckout\b|\bgo to checkout\b|\bproceed to checkout\b` +
     String.raw`|\bproceed to payment\b|\bsecure checkout\b|\bcheckout securely\b` +
     String.raw`|\bstart checkout\b` +
-    String.raw`|\bpay now\b|\bpay and order\b|\bpay & order\b` +
+    String.raw`|\bpay\b|\bpay now\b|\bpay and order\b|\bpay & order\b` +
     String.raw`|\bpay with (a )?(card|credit card|debit card)\b|\bmake a payment\b` +
     String.raw`|\bpay securely\b|\bpay (the )?(total|amount|balance)\b|\bwallet\b` +
     String.raw`|অর্ডার করুন|অর্ডার সম্পন্ন করুন|এখনই অর্ডার করুন|কিনুন|এখনই কিনুন` +
@@ -284,7 +284,7 @@ const DESTRUCTIVE_TEXT = compileRegex(
     String.raw`|\bpurge all\b|\bdiscard all changes\b` +
     String.raw`|\b(delete|remove|clear) (all|every|my) (data|history|files|items|orders` +
     String.raw`|photos|messages|followings?|bookmarks|search history)\b` +
-    String.raw`|\bdelete (my )?(data|history|files|photos|account data)\b` +
+    String.raw`|\b(delete|clear) (my )?(data|history|files|photos|account data)\b` +
     String.raw`|মুছুন|মুছে ফেলুন|ডিলিট করুন|ডিলিট|অপসারণ করুন|অপসারণ` +
     String.raw`|অ্যাকাউন্ট মুছুন|অ্যাকাউন্ট ডিলিট|সব ডিলিট|সব মুছে|সব মুছুন|সব ডেটা মুছুন`,
 );
@@ -612,6 +612,10 @@ function readString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
+function normalizeWhitespace(text: string): string {
+  return text.trim().replace(/\s+/g, ' ');
+}
+
 /** Reads the elements of a supplied snapshot, keeping only the fields this tool uses. */
 function readSnapshotElements(snapshot: unknown): SignalElement[] {
   if (typeof snapshot !== 'object' || snapshot === null) {
@@ -628,8 +632,12 @@ function readSnapshotElements(snapshot: unknown): SignalElement[] {
     }
     const record = entry as Record<string, unknown>;
     const role = readString(record.role);
-    const text = readString(record.text);
-    if (text === null || text === '') {
+    const rawText = readString(record.text);
+    if (rawText === null) {
+      continue;
+    }
+    const text = normalizeWhitespace(rawText);
+    if (text === '') {
       continue;
     }
     if (!isInteractiveRole(role)) {
@@ -648,7 +656,8 @@ interface ReadTarget {
 
 function readTarget(raw: unknown): ReadTarget {
   if (typeof raw === 'string') {
-    return { role: null, texts: raw === '' ? [] : [raw], value: null };
+    const text = normalizeWhitespace(raw);
+    return { role: null, texts: text === '' ? [] : [text], value: null };
   }
   if (typeof raw !== 'object' || raw === null) {
     return { role: null, texts: [], value: null };
@@ -657,8 +666,11 @@ function readTarget(raw: unknown): ReadTarget {
   const texts: string[] = [];
   for (const key of ['text', 'name'] as const) {
     const value = readString(record[key]);
-    if (value !== null && value !== '') {
-      texts.push(value);
+    if (value !== null) {
+      const text = normalizeWhitespace(value);
+      if (text !== '') {
+        texts.push(text);
+      }
     }
   }
   return { role: readString(record.role), texts, value: readString(record.value) };
