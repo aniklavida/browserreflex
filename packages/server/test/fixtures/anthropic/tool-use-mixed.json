@@ -1,0 +1,47 @@
+{
+  "id": "msg_fake_mixed_three",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-haiku-4-5-20251001",
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "Considering the snapshot."
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_fake_02",
+      "name": "submit_decisions",
+      "input": {
+        "answers": [
+          {
+            "question_id": "q_popup",
+            "value": "cookie_banner",
+            "confidence": 0.82,
+            "distribution": {
+              "cookie_banner": 0.82,
+              "login_modal": 0.11,
+              "none": 0.07
+            }
+          },
+          {
+            "question_id": "q_login_wall",
+            "value": false,
+            "confidence": 0.74
+          },
+          {
+            "question_id": "q_risk",
+            "value": 3,
+            "confidence": 0.55
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 588,
+    "output_tokens": 96
+  }
+}

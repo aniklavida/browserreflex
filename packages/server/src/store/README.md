@@ -11,6 +11,10 @@ The default database location is `~/.browserreflex/browserreflex.db`, with custo
 
 The store provides:
 - Idempotent migration runner tracking applied migrations in `schema_migrations`.
-- The 7 core tables: `sessions`, `packs`, `patterns`, `pattern_stats`, `decisions`, `feedback`, and `settings`.
+- The 8 core tables: `sessions`, `packs`, `patterns`, `pattern_stats`, `decisions`, `decision_signals`, `feedback`, and `settings`.
 - Foreign key enforcement and write-ahead logging (WAL) mode.
-- Fully typed repository functions for creating, reading, querying, updating, and deleting records across all 7 tables.
+- Fully typed repository functions for creating, reading, querying, updating, and deleting records across all 8 tables.
+
+`decision_signals` holds one row per decision: the features `learning/capture.ts`
+stores when the slow path completes or a person corrects an answer. It is read back
+with `store.signals.list({ domain, path })`.

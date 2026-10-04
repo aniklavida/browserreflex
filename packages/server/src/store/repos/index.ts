@@ -1,5 +1,6 @@
 export { SessionRepo } from './sessions.js';
 export { DecisionRepo } from './decisions.js';
+export { SignalRepo } from './signals.js';
 export { FeedbackRepo } from './feedback.js';
 export { PackRepo } from './packs.js';
 export { PatternRepo } from './patterns.js';
