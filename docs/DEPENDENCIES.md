@@ -20,6 +20,8 @@ Pattern pack loader (`packages/server/src/patterns/loader.ts`, 2026-10-04) uses 
 
 The `feedback` tool (`packages/server/src/tools/feedback.ts`, 2026-10-04) reuses the store repositories, the memory module and `redact`, and adds no dependency to this table.
 
+The `action_guard` tool (`packages/server/src/tools/action_guard.ts`, 2026-10-04) uses the pattern engine's own matcher and regex compiler, `security/redact.ts` to recognise a credential, `zod` (MIT, already in the production table above) for the tool's two schemas, `core/log.ts` to record the verdict and the Node standard library for the clock. It reads the `Rule` type the pack loader already produces and adds no dependency to this table. Its fixtures (`packages/server/test/fixtures/action-guard/*.yaml`) are parsed with `yaml` (ISC, already in the table above) and are data rather than code, and the test itself runs on `vitest` (MIT, already in the development table below).
+
 The browser pattern pack (`packages/packs/browser/*.yaml`, 2026-10-04) is versioned YAML read by the loader above, so it adds no dependency: the rules and their 65 synthetic fixtures are data, not code. The fixture test (`packages/server/test/browser-pack.test.ts`) parses those fixtures with `yaml` (ISC, already in the production table above) and runs on `vitest` (MIT, already in the development table below), so it adds nothing to either table.
 
 Signal extraction on capture (`packages/server/src/learning/capture.ts`, 2026-10-04) uses the Node standard library, the internal pattern matchers and `redact`, and adds no dependency to this table.
