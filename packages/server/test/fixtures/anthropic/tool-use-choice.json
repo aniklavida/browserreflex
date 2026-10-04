@@ -1,0 +1,33 @@
+{
+  "id": "msg_fake_choice_banner",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-haiku-4-5-20251001",
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_fake_01",
+      "name": "submit_decisions",
+      "input": {
+        "answers": [
+          {
+            "question_id": "q_popup",
+            "value": "cookie_banner",
+            "confidence": 0.86,
+            "distribution": {
+              "cookie_banner": 0.86,
+              "login_modal": 0.09,
+              "none": 0.05
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 412,
+    "output_tokens": 57
+  }
+}
