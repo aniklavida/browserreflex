@@ -2,7 +2,7 @@
 
 Versioned YAML rules for the seven browser checks in the specification, plus the synthetic fixtures they are measured on.
 
-Status: **implemented and tested** for the rules, the pack loader path and the fixture suite (`packages/server/test/browser-pack.test.ts`). **Planned:** the `page_check` and `action_guard` tools that would serve these rules do not exist yet, so the canonical question shapes live in the test rather than in a served tool.
+Status: **implemented and tested** for the rules, the pack loader path and the fixture suite (`packages/server/test/browser-pack.test.ts`). `page_check` serves these rules and is **implemented and tested** (`packages/server/test/page-check-tool.test.ts`); it asks exactly the canonical questions below. `action_guard`, the tool that answers one action, is **planned**.
 
 The safety check is **advisory**. A rule marked `safety: true` tells the caller to ask the user; nothing in this pack prevents an agent from acting, and an agent that never calls BrowserReflex is not stopped by it.
 
@@ -32,6 +32,8 @@ Each rule declares `target_question_id`, so a rule answers one question and neve
 | `browser.check.risky_action` | choice | `allow`, `ask_user`, `block`; this pack only ever answers `ask_user` |
 
 The choice rules carry a `distribution` over the option ids above, because the engine validates a choice answer against the question it was asked. A caller whose options differ from this table gets no fast answer for that family.
+
+`page_check` asks these four questions plus `browser.check.page_type`, a choice question no rule in this pack targets, so the page type always comes back in `needs_ai`. The questions themselves live in `packages/server/src/tools/page_check.ts`, where a served tool asks them.
 
 ## Known limits of these rules
 

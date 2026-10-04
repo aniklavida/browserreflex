@@ -2,9 +2,9 @@
  * Browser pack v1: the seven browser checks measured on synthetic snapshots.
  *
  * Status: **implemented and tested** for the pack files, the fixtures and the loader
- * path exercised here. The `page_check` and `action_guard` tools that would serve these
- * rules are not part of this card, so the canonical question shapes below live in this
- * test rather than in a served tool.
+ * path exercised here. The `page_check` tool serves these rules and asks the same canonical
+ * questions written out below; `action_guard`, the tool that answers one action, is not
+ * part of this card.
  *
  * The safety flag is advisory: a safety rule here tells the caller to ask the user, and
  * nothing in this pack prevents an agent from acting.
