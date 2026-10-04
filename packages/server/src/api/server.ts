@@ -45,6 +45,9 @@ import {
 /** The only address this server binds to. Not configurable on purpose. */
 export const API_BIND_HOST = '127.0.0.1';
 
+/** How long `stop()` lets open requests finish before it closes them. */
+export const STOP_GRACE_MS = 500;
+
 /** Default port. Port 0 asks the operating system for a free one. */
 export const DEFAULT_API_PORT = 4040;
 
@@ -209,8 +212,19 @@ export async function startApiServer(
     allowedOrigins,
     stop(): Promise<void> {
       return new Promise((resolve, reject) => {
-        server.close((err) => (err ? reject(err) : resolve()));
+        server.close((err) => {
+          // Stopping a server that is already stopped is not an error.
+          if (err && (err as NodeJS.ErrnoException).code !== 'ERR_SERVER_NOT_RUNNING') {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
         server.closeIdleConnections();
+        // A live event stream is never idle, so it would keep close() waiting for ever. Give
+        // requests a moment to finish, then end whatever is still open.
+        const forced = setTimeout(() => server.closeAllConnections(), STOP_GRACE_MS);
+        forced.unref();
       });
     },
   };

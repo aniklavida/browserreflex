@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { Card } from '../components/Card';
 import { ErrorNote } from '../components/ErrorNote';
+import { KeySection } from '../components/KeySection';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { useToast } from '../components/Toast';
 import { useApi } from '../useApi';
@@ -95,17 +96,7 @@ export function Engines() {
                   onChange={(event) => setModel(event.target.value)}
                 />
               </label>
-              <div className="warn">
-                <strong>Entering a key here is planned.</strong> The local API refuses to store
-                credentials by design, and the operating system keychain is not wired to this page
-                yet. Your mode and model are saved; the key is not. Bring-your-own-key mode is
-                experimental and has been tested with fixtures only, never against a live provider.
-              </div>
-              <div>
-                <button type="button" className="btn" disabled title="Planned">
-                  Test connection (planned)
-                </button>
-              </div>
+              <KeySection />
             </div>
           )}
           <div>

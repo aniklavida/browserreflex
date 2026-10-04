@@ -33,7 +33,7 @@ All responses are JSON, snake_case, served on `127.0.0.1`.
 | GET | `/api/stream` | A server-sent event stream: one `decision` event for each decision recorded after the stream opened (polled once a second) |
 | GET | `/api/sessions` | One row per session with its agent, decision count, fast, model and person counts, first and last time |
 | PUT | `/api/packs/:id` | `{ active: boolean }`. A pack that is off stops answering with its non-safety rules; its safety rules keep working |
-| PUT | `/api/patterns/:id` | `{ status: "active" \| "disabled" }`. A safety pattern is refused (403); only a pattern promotion made active can be switched on |
+| PUT | `/api/patterns/:id` | `{ status: "active" \| "disabled" }`. A safety pattern is refused (403); a written pack rule is refused (409: switch its pack off instead); only a pattern promotion made active can be switched on, and not while a drift alert for it is open (409) |
 | GET | `/api/pattern-stats` | Sample, agree and disagree counts per pattern |
 | GET / PUT / DELETE | `/api/keys`, `/api/keys/:provider` | Whether a provider key is stored and its masked form; store or remove one. The key itself is never returned |
 | POST | `/api/keys/test` | One small call to the provider with the stored key. Experimental: never run against a live provider by the test suite |

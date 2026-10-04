@@ -206,15 +206,18 @@ describe('thresholds and safety', () => {
 });
 
 describe('engines and keys', () => {
-  it('saves the mode and the model, never a key, and labels the key step as planned', async () => {
-    const calls = mockApi((_m, url) =>
-      url === '/api/settings' ? { settings: [{ key: 'mode', value: 'byok' }] } : STATS,
-    );
+  const engineApi = (mode: string | null) =>
+    mockApi((_m, url) => {
+      if (url === '/api/settings')
+        return { settings: mode === null ? [] : [{ key: 'mode', value: mode }] };
+      if (url === '/api/keys') return { items: [] };
+      return STATS;
+    });
+
+  it('saves the mode and the model through the settings, and never a key', async () => {
+    const calls = engineApi('byok');
     renderAt('/engines');
-    await waitFor(() => expect(screen.getByText(/Entering a key here is planned/)).toBeTruthy());
-    expect(screen.getByRole('button', { name: /Test connection/ }).hasAttribute('disabled')).toBe(
-      true,
-    );
+    await waitFor(() => expect(screen.getByLabelText('Provider key')).toBeTruthy());
     fireEvent.change(screen.getByLabelText('Model'), { target: { value: 'my-model' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(calls.filter((c) => c.method === 'PUT').length).toBe(3));
@@ -222,13 +225,13 @@ describe('engines and keys', () => {
       .filter((c) => c.method === 'PUT')
       .map((c) => (c.body as { key: string }).key);
     expect(written).toEqual(['mode', 'provider', 'provider.anthropic.model']);
-    expect(JSON.stringify(calls)).not.toMatch(/api[_-]?key/i);
   });
 
   it('shows how chat mode routes and saves chat mode alone', async () => {
-    const calls = mockApi((_m, url) => (url === '/api/settings' ? { settings: [] } : STATS));
+    const calls = engineApi(null);
     renderAt('/engines');
     await waitFor(() => expect(screen.getByText('New question')).toBeTruthy());
+    expect(screen.queryByLabelText('Provider key')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(calls.some((c) => c.method === 'PUT')).toBe(true));
     expect(calls.filter((c) => c.method === 'PUT')).toHaveLength(1);
@@ -338,10 +341,11 @@ describe('learned', () => {
       if (url.startsWith('/api/patterns'))
         return {
           items: [
-            pattern({ id: 'learned-1', status: 'active' }),
-            pattern({ id: 'pay', is_safety: 1, pack_id: 'browser' }),
+            pattern({ id: 'learned-1', status: 'active', rules: '{"id":"learned-1"}' }),
+            pattern({ id: 'pay', is_safety: 1, rules: '{"id":"pay"}' }),
+            pattern({ id: 'stub-rule', status: 'active', rules: '{}' }),
           ],
-          total: 2,
+          total: 3,
           limit: 500,
           offset: 0,
         };
@@ -349,6 +353,7 @@ describe('learned', () => {
     });
     renderAt('/learned');
     await waitFor(() => expect(screen.getByText('learned-1')).toBeTruthy());
+    expect(screen.queryByText('stub-rule')).toBeNull();
     fireEvent.click(screen.getByText('pay'));
     expect(screen.getByRole('dialog')).toBeTruthy();
     expect(screen.getByText(/A safety rule\. It cannot be changed/)).toBeTruthy();
@@ -371,6 +376,7 @@ describe('setup wizard', () => {
     let total = 0;
     const calls = mockApi((_m, url) => {
       if (url === '/api/stats') return { ...STATS, decisions: { ...STATS.decisions, total } };
+      if (url === '/api/keys') return { items: [] };
       if (url.startsWith('/api/packs'))
         return {
           items: [
@@ -379,8 +385,7 @@ describe('setup wizard', () => {
               name: 'Browser pack',
               version: '1',
               description: 'Seven checks',
-              source: 'builtin',
-              active: 1,
+              is_active: 1,
             },
           ],
           total: 1,
@@ -395,7 +400,7 @@ describe('setup wizard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     expect(screen.getByText('How should new questions be answered?')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Your own key' }));
-    expect(screen.getByText(/saves the mode, not the key/)).toBeTruthy();
+    await waitFor(() => expect(screen.getByLabelText('Provider key')).toBeTruthy());
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     await waitFor(() => expect(screen.getByText('Pattern packs')).toBeTruthy());
     expect(calls.find((c) => c.method === 'PUT')?.body).toEqual({ key: 'mode', value: 'byok' });

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, type Pack } from '../api';
+import { KeySection } from '../components/KeySection';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { useToast } from '../components/Toast';
 
@@ -140,8 +141,9 @@ export function Setup() {
               <p className="muted">
                 {mode === 'chat'
                   ? 'Your agent answers new questions in its own conversation and BrowserReflex remembers the answer.'
-                  : 'BrowserReflex asks your provider itself. This mode is experimental and tested with fixtures only. Entering the key is planned: this wizard saves the mode, not the key.'}
+                  : 'BrowserReflex asks your provider itself. This mode is experimental and tested with fixtures only.'}
               </p>
+              {mode === 'byok' ? <KeySection /> : null}
             </>
           ) : null}
           {step === 2 ? (
@@ -163,7 +165,7 @@ export function Setup() {
                     <strong>{pack.name}</strong>
                     <div className="muted">{pack.description ?? ''}</div>
                   </div>
-                  <span className="chip">{pack.active ? 'active' : 'off'}</span>
+                  <span className="chip">{pack.is_active ? 'active' : 'off'}</span>
                 </div>
               ))}
             </>

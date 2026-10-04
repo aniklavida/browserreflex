@@ -4,7 +4,7 @@
 
 BrowserReflex is a self-hosted MCP server with a small local web UI. It sits beside a browser-automation agent. For repeated small questions (what kind of popup is this, is this button safe to click, is a login wall in the way) it answers from remembered inputs, written rules and direct checks of the page. When none of those is confident enough, the question goes to the agent's own model, and that answer is stored so the next occurrence is fast.
 
-> **Status: pre-release.** The server core, all eight MCP tools, the browser pattern pack, the CLI commands (`init`, `serve`, `report`), and the advisory safety suite are **implemented and tested**. The local web UI (seven pages and the shell) is **implemented and tested** against a mocked API only and has never been run against a live agent; the other UI pages, and entering a key in the browser are **planned**; Docker support for the MCP stdio server is written but untested (never built or run). There is no stable release yet; see the capability table below for the state of each feature.
+> **Status: pre-release.** The server core, all eight MCP tools, the browser pattern pack, the CLI commands (`init`, `serve`, `report`), and the advisory safety suite are **implemented and tested**. The local web UI (every page in the design, and the shell) is **implemented and tested** against a mocked API and has never been run against a live agent; the live provider connection test is **experimental**; Docker support is written but untested (never built or run); other providers, importing a pack file and PDF reports are **planned**. There is no stable release yet; see the capability table below for the state of each feature.
 
 ## What it is, and what it is not
 
@@ -31,7 +31,7 @@ BrowserReflex is a self-hosted MCP server with a small local web UI. It sits bes
 | Advisory safety test suite (payment, destructive, outbound, secrets, prompt injection, benign) | implemented and tested (193 cases, 30 property tests, 0 misses) |
 | Learning loop: capture, mine, shadow test, promote, re-check, demote | capture, miners, calibration, shadow test, promotion, re-check, demotion and drift alerts implemented and tested; no real-use result yet |
 | Chat mode (no key) and bring-your-own-key mode | experimental (fixture-tested only) |
-| Local UI: shell, setup wizard, dashboard, review queue, thresholds and safety, engines and keys, learned patterns, analytics overview | implemented and tested against a mocked API; never run against a live agent. Other pages and entering a key in the browser: planned |
+| Local UI: shell, setup wizard, dashboard, live activity, review queue, patterns, packs, learned, analytics, logs, task replay, reports, thresholds and safety, engines and keys, integrations, settings | implemented and tested against a mocked API; never run against a live agent. The live provider connection test is experimental; other providers, importing a pack, PDF reports and team mode are planned |
 | Measurement report command (`browserreflex report`) | implemented and tested |
 | Gate 3 alpha evaluation | not measured |
 | Coding pack, analytics, reports, integrations, team mode, community packs | planned for later versions |

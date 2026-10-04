@@ -129,6 +129,31 @@ describe('decision filters', () => {
   });
 });
 
+describe('malformed requests', () => {
+  it('answers a malformed percent escape in a query with a normal response, not a 500', async () => {
+    const api = await start({}, true);
+    const result = await call(api, 'GET', '/api/decisions?q=%E0%A4%A');
+    expect(result.status).toBe(200);
+  });
+});
+
+describe('shutdown', () => {
+  it('stops even while a live stream is open', async () => {
+    const api = await start();
+    await new Promise<void>((resolve, reject) => {
+      const req = http.get(
+        { hostname: '127.0.0.1', port: api.port, path: '/api/stream', agent: false },
+        () => resolve(),
+      );
+      req.on('error', () => undefined);
+      setTimeout(() => reject(new Error('the stream did not open')), 2000);
+    });
+    const started = Date.now();
+    await api.stop();
+    expect(Date.now() - started).toBeLessThan(3000);
+  });
+});
+
 describe('live stream', () => {
   it('sends a decision made after the stream opened, and none from before', async () => {
     const api = await start();
@@ -255,6 +280,62 @@ describe('pack and pattern switches', () => {
       400,
     );
     expect((await call(api, 'PUT', '/api/patterns/none', { status: 'disabled' })).status).toBe(404);
+  });
+
+  it('refuses to disable a written pack rule, because only its pack can switch it off', async () => {
+    const api = await start({}, true);
+    api.store.patterns.create({
+      id: 'browser.cookie.accept_all',
+      name: 'browser.cookie.accept_all',
+      decision_type: 'check',
+      rules: '{}',
+      status: 'active',
+      confidence: 0.9,
+      is_safety: false,
+    });
+    const result = await call(api, 'PUT', '/api/patterns/browser.cookie.accept_all', {
+      status: 'disabled',
+    });
+    expect(result.status).toBe(409);
+    expect(result.text).toContain('Packs page');
+    expect(api.store.patterns.getById('browser.cookie.accept_all')?.status).toBe('active');
+  });
+
+  it('refuses to switch a pattern on while a drift alert for it is open', async () => {
+    const api = await start({}, true);
+    api.store.patterns.create({
+      id: 'demoted',
+      name: 'demoted',
+      decision_type: 'check',
+      rules: '{}',
+      status: 'disabled',
+      confidence: 0.9,
+      is_safety: false,
+    });
+    api.store.promotionEvents.create({
+      pattern_id: 'demoted',
+      sample_count: 25,
+      agreement: 1,
+      threshold_samples: 20,
+      threshold_agreement: 0.95,
+      thresholds: {},
+    });
+    const alert = api.store.driftAlerts.create({
+      pattern_id: 'demoted',
+      sample_count: 20,
+      agreed_count: 10,
+      disagreed_count: 10,
+      accuracy: 0.5,
+      threshold: 0.9,
+      message: 'disabled',
+    });
+    expect((await call(api, 'PUT', '/api/patterns/demoted', { status: 'active' })).status).toBe(
+      409,
+    );
+    await call(api, 'PUT', `/api/drift/${alert.id}`, { status: 'acknowledged' });
+    expect((await call(api, 'PUT', '/api/patterns/demoted', { status: 'active' })).status).toBe(
+      200,
+    );
   });
 
   it('reports sample counts per pattern', async () => {
