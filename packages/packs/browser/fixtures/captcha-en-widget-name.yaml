@@ -1,0 +1,16 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: captcha
+expected:
+  value: true
+snapshot:
+  url: https://market.example/item/771
+  elements:
+    - role: heading
+      text: Vintage lamp
+    - role: iframe
+      text: reCAPTCHA
+    - role: button
+      text: Submit offer
+    - role: paragraph
+      text: Sellers answer within one day.

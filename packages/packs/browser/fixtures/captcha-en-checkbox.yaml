@@ -1,0 +1,17 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: captcha
+expected:
+  value: true
+  pattern_id: browser.captcha.widget_prompt
+snapshot:
+  url: https://accounts.example/signup
+  elements:
+    - role: heading
+      text: Create an account
+    - role: checkbox
+      text: I am not a robot
+    - role: button
+      text: Sign up
+    - role: paragraph
+      text: This field is required.

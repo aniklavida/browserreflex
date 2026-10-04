@@ -1,0 +1,126 @@
+id: browser-cookie-banner
+name: Browser Cookie Banner Rules
+version: 1.0.0
+description: >-
+  Classifies a cookie consent surface on a page as popup kind cookie_banner.
+  Every rule answers the popup kind choice question with the option ids none,
+  cookie_banner and promo. Signals are the accessible text of the consent
+  container and of its accept, reject and preference controls, in English and
+  in Bangla.
+source: builtin
+rules:
+  - id: browser.popup.cookie.consent_container
+    name: Consent container text
+    description: >-
+      A container role element whose accessible text names cookies, consent or
+      GDPR. Scoped to container roles so that page or article text about cookies
+      does not read as a consent banner.
+    safety: false
+    matchers:
+      target_question_id: browser.check.popup_kind
+      role:
+        - region
+        - dialog
+        - alertdialog
+        - complementary
+        - banner
+        - form
+        - group
+      text_regex: '\b(cookies?|consent|gdpr)\b'
+    output:
+      type: choice
+      value: cookie_banner
+      confidence: 0.9
+      distribution:
+        none: 0.03
+        cookie_banner: 0.94
+        promo: 0.03
+
+  - id: browser.popup.cookie.accept_control
+    name: Consent accept control
+    description: >-
+      An interactive control whose text accepts, agrees to or allows the
+      consent, with or without the word cookies.
+    safety: false
+    matchers:
+      target_question_id: browser.check.popup_kind
+      role:
+        - button
+        - link
+      text_regex: '\baccept( all)? cookies\b|\baccept all\b|\bagree( and continue| to all| to cookies)?\b|\ballow all cookies\b|\ballow cookies\b|\bconsent\b.{0,15}\baccept\b|\bi accept\b|\bgot it\b'
+    output:
+      type: choice
+      value: cookie_banner
+      confidence: 0.9
+      distribution:
+        none: 0.03
+        cookie_banner: 0.94
+        promo: 0.03
+
+  - id: browser.popup.cookie.manage_control
+    name: Cookie preference control
+    description: >-
+      An interactive control that opens cookie or privacy preferences, which is
+      present on consent surfaces even when no accept text is visible.
+    safety: false
+    matchers:
+      target_question_id: browser.check.popup_kind
+      role:
+        - button
+        - link
+      text_regex: '\bcookie settings\b|\bmanage cookies\b|\bmanage (your )?privacy\b|\bpreference (centre|center)\b|\bprivacy preferences\b|\bcustomi[sz]e cookies\b|\bcookie preferences\b'
+    output:
+      type: choice
+      value: cookie_banner
+      confidence: 0.85
+      distribution:
+        none: 0.05
+        cookie_banner: 0.9
+        promo: 0.05
+
+  - id: browser.popup.cookie.bangla_container
+    name: Bangla consent container text
+    description: >-
+      A container role element whose accessible text names cookies or consent
+      in Bangla (kuki, sommati).
+    safety: false
+    matchers:
+      target_question_id: browser.check.popup_kind
+      role:
+        - region
+        - dialog
+        - alertdialog
+        - complementary
+        - banner
+        - form
+        - group
+      text_regex: 'কুকি|সম্মতি'
+    output:
+      type: choice
+      value: cookie_banner
+      confidence: 0.88
+      distribution:
+        none: 0.04
+        cookie_banner: 0.92
+        promo: 0.04
+
+  - id: browser.popup.cookie.bangla_accept_control
+    name: Bangla consent accept control
+    description: >-
+      An interactive control in Bangla that gives consent (somotti din, anumodan
+      korun, kuki grahon).
+    safety: false
+    matchers:
+      target_question_id: browser.check.popup_kind
+      role:
+        - button
+        - link
+      text_regex: 'সম্মতি|কুকি গ্রহণ|কুকি সম্মতি|অনুমোদন করুন'
+    output:
+      type: choice
+      value: cookie_banner
+      confidence: 0.88
+      distribution:
+        none: 0.04
+        cookie_banner: 0.92
+        promo: 0.04

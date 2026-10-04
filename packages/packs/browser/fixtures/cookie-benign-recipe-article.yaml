@@ -1,0 +1,19 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: cookie_banner
+expected:
+  no_match: true
+note: >-
+  An article about cookies is not a consent surface. No popup rule fires, so the
+  decision has no fast answer and falls to the slow path.
+snapshot:
+  url: https://food.example/recipes/chocolate-chip-cookies
+  elements:
+    - role: heading
+      text: The best chocolate chip cookies of 2026
+    - role: paragraph
+      text: Rest the dough overnight so the cookies keep their shape while baking.
+    - role: paragraph
+      text: Always consent to cooling the tray before you serve.
+    - role: link
+      text: Back to recipes

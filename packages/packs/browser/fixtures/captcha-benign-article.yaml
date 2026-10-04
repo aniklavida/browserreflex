@@ -1,0 +1,19 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: captcha
+expected:
+  no_match: true
+note: >-
+  An article about captchas is not a widget. The rules are scoped to interactive
+  and embedded roles, so heading and paragraph text about captchas is ignored.
+snapshot:
+  url: https://engineering.example/post/captcha-fatigue
+  elements:
+    - role: heading
+      text: Why captchas break sign-up
+    - role: paragraph
+      text: A human verification step on every form costs more users than it stops bots.
+    - role: paragraph
+      text: Our security check rollout reduced completion by 4 percent.
+    - role: link
+      text: Read the study

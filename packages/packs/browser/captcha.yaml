@@ -1,0 +1,73 @@
+id: browser-captcha
+name: Browser Captcha Rules
+version: 1.0.0
+description: >-
+  Reports captcha true when the supplied page shows a human verification
+  widget. Signals are the accessible text of the widget and of its prompt
+  controls, in English and in Bangla. The rules answer a check question with a
+  boolean.
+source: builtin
+rules:
+  - id: browser.captcha.widget_prompt
+    name: Human verification prompt
+    description: >-
+      An interactive or embedded element whose accessible text is a challenge
+      prompt of a human verification widget. Scoped to interactive and embedded
+      roles so that an article about captchas does not read as a widget.
+    safety: false
+    matchers:
+      target_question_id: browser.check.captcha
+      role:
+        - checkbox
+        - button
+        - textbox
+        - iframe
+        - group
+        - img
+        - image
+      text_regex: '\bim not a robot\b|\bi am not a robot\b|\bnot a robot\b|\bverify (that )?you are (a )?human\b|\bconfirm you are human\b|\benter the (characters|code|text|digits)\b|\btype the (characters|code|text)\b|\bselect all (images|squares|traffic)\b|\bhuman verification\b|\bsecurity check\b|\bverify it is you\b|\bverify its you\b|\bpress and hold\b|\bcomplete the captcha\b'
+    output:
+      type: check
+      value: true
+      confidence: 0.92
+
+  - id: browser.captcha.widget_name
+    name: Verification widget name
+    description: >-
+      An interactive or embedded element whose accessible text names a known
+      verification widget. Only used when the widget itself is exposed in the
+      snapshot; a challenge served from an unnamed frame is not detected.
+    safety: false
+    matchers:
+      target_question_id: browser.check.captcha
+      role:
+        - checkbox
+        - button
+        - textbox
+        - iframe
+        - group
+        - img
+        - image
+      text_regex: '\brecaptcha\b|\bhcaptcha\b|\bturnstile\b|\bcaptcha\b|\barkose\b|\bfuncaptcha\b|\bhuman check\b'
+    output:
+      type: check
+      value: true
+      confidence: 0.9
+
+  - id: browser.captcha.bangla_widget
+    name: Bangla human verification prompt
+    description: >-
+      An interactive element whose accessible text is a Bangla human
+      verification prompt (ami robot noi, manush kina jachai, captcha).
+    safety: false
+    matchers:
+      target_question_id: browser.check.captcha
+      role:
+        - checkbox
+        - button
+        - textbox
+      text_regex: 'আমি রোবট নই|মানুষ কিনা যাচাই|ক্যাপচা|ক্যাপচা সম্পন্ন করুন|যাচাই করুন|রোবট নই'
+    output:
+      type: check
+      value: true
+      confidence: 0.9

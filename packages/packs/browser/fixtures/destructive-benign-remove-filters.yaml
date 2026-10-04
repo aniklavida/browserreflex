@@ -1,0 +1,19 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: destructive
+expected:
+  no_match: true
+note: >-
+  Narrowing a search result set is not a deletion. Removing a filter does not
+  match a delete or remove rule.
+snapshot:
+  url: https://library.example/search?q=history
+  elements:
+    - role: heading
+      text: Results
+    - role: button
+      text: Remove applied filters
+    - role: checkbox
+      text: Available only
+    - role: button
+      text: Apply

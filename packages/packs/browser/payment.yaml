@@ -1,0 +1,169 @@
+id: browser-risky-payment
+name: Browser Risky Payment Rules
+version: 1.0.0
+description: >-
+  Marks a payment action on the supplied page as risky. Every rule is advisory
+  and flagged safety, takes precedence over non safety rules in the engine, and
+  answers the risky action choice question with the option ids allow, ask_user
+  and block. Signals are the accessible text of order, checkout and payment
+  controls, in English and in Bangla.
+source: builtin
+rules:
+  - id: browser.risky.payment.place_order
+    name: Place order control
+    description: >-
+      An interactive control whose text commits an order or a purchase, whether
+      the text is only the verb or a longer sentence such as Review and place
+      your order.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+      text_regex: '\bplace (my |your |the )?order\b|\bplace order\b|\bconfirm (my |your |the )?order\b|\bcomplete (my |your |the )?(order|purchase|checkout)\b|\bsubmit order\b|\bfinalise (my |the )?order\b|\bfinalize (my |the )?order\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.95
+      distribution:
+        allow: 0.03
+        ask_user: 0.94
+        block: 0.03
+
+  - id: browser.risky.payment.buy_now
+    name: Buy now control
+    description: >-
+      An interactive control whose text asks for an immediate purchase or
+      order.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+      text_regex: '\bbuy now\b|\bbuy it now\b|\border now\b|\border immediately\b|\badd to cart and buy\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.95
+      distribution:
+        allow: 0.03
+        ask_user: 0.94
+        block: 0.03
+
+  - id: browser.risky.payment.checkout_control
+    name: Checkout control
+    description: >-
+      An interactive control whose text moves to or confirms the checkout step,
+      where payment details are entered.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+      text_regex: '\bcheckout\b|\bgo to checkout\b|\bproceed to checkout\b|\bproceed to payment\b|\bsecure checkout\b|\bcheckout securely\b|\bstart checkout\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.92
+      distribution:
+        allow: 0.05
+        ask_user: 0.92
+        block: 0.03
+
+  - id: browser.risky.payment.pay_control
+    name: Pay control
+    description: >-
+      A button whose text starts a payment, including wallet and card payment
+      buttons.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+      text_regex: '\bpay now\b|\bpay and order\b|\bpay & order\b|\bpay with (a )?(card|credit card|debit card)\b|\bmake a payment\b|\bpay securely\b|\bpay (the )?(total|amount|balance)\b|\bwallet\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.95
+      distribution:
+        allow: 0.03
+        ask_user: 0.94
+        block: 0.03
+
+  - id: browser.risky.payment.bangla_order
+    name: Bangla order control
+    description: >-
+      An interactive control in Bangla that places an order or starts a
+      purchase (order korun, kinun, order somman korun).
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+      text_regex: 'অর্ডার করুন|অর্ডার সম্পন্ন করুন|এখনই অর্ডার করুন|কিনুন|এখনই কিনুন|অর্ডার বাক্সে যান|ক্রয় করুন'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.95
+      distribution:
+        allow: 0.03
+        ask_user: 0.94
+        block: 0.03
+
+  - id: browser.risky.payment.bangla_payment
+    name: Bangla payment control
+    description: >-
+      An interactive control in Bangla that starts a payment or names the
+      checkout step (payment, checkout, parishodh).
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      role:
+        - button
+        - link
+      text_regex: 'পেমেন্ট|পেমেন্ট করুন|পরিশোধ করুন|চেকআউট|চেক আউট'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.93
+      distribution:
+        allow: 0.04
+        ask_user: 0.93
+        block: 0.03
+
+  - id: browser.risky.payment.checkout_path_control
+    name: Payment step URL path
+    description: >-
+      The URL path is a checkout or payment step and the page carries a control
+      whose text commits the step. Catches sites that label the committing
+      control only Continue or Next.
+    safety: true
+    matchers:
+      target_question_id: browser.check.risky_action
+      url_path:
+        - /checkout
+        - /checkout/*
+        - /checkout/**
+        - /payment
+        - /payment/*
+        - /payment/**
+        - /cart/checkout
+        - /cart/checkout/*
+        - /cart/checkout/**
+        - /order/place
+        - /order/place/*
+      role:
+        - button
+      text_regex: '\b(continue|next|proceed|confirm|submit|go)\b'
+    output:
+      type: choice
+      value: ask_user
+      confidence: 0.85
+      distribution:
+        allow: 0.1
+        ask_user: 0.87
+        block: 0.03

@@ -1,0 +1,17 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: newsletter_popup
+expected:
+  value: promo
+  pattern_id: browser.popup.promo.offer_container
+snapshot:
+  url: https://grocer.example/basket
+  elements:
+    - role: banner
+      text: Grocer
+    - role: region
+      text: Sign up and save 15% on your next shop
+    - role: button
+      text: Sign up
+    - role: link
+      text: Continue shopping

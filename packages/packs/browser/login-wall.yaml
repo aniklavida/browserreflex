@@ -1,0 +1,91 @@
+id: browser-login-wall
+name: Browser Login Wall Rules
+version: 1.0.0
+description: >-
+  Reports login_wall true when the supplied page looks like it is behind an
+  authentication gate. Signals are a sign in prompt in the page text, an
+  authentication URL path, and the accessible name of a password field, in
+  English and in Bangla. The rules answer a check question with a boolean.
+source: builtin
+rules:
+  - id: browser.login_wall.sign_in_prompt
+    name: Sign in prompt
+    description: >-
+      Any element whose accessible text asks the reader to sign in or to
+      register before continuing. Bare account links such as a header Sign in
+      link do not match, because the prompt must carry the gate wording.
+    safety: false
+    matchers:
+      target_question_id: browser.check.login_wall
+      text_regex: '\bsign in to (continue|view|see|access|proceed|read)\b|\blog ?in to (continue|view|see|access|proceed|read)\b|\bplease (sign|log) in\b|\byou must (be )?(signed|logged) in\b|\bcreate an account to (continue|view|see|read)\b|\bregister to (continue|view|see)\b|\bmembers only\b|\bmembers[- ]area\b|\blogin required\b|\bsign in required\b|\bthis content is (for|only for) (registered|members) (users|members)?\b'
+    output:
+      type: check
+      value: true
+      confidence: 0.9
+
+  - id: browser.login_wall.auth_path
+    name: Authentication URL path
+    description: >-
+      The page URL path is an authentication entry point. Patterns are globs so
+      that a deep path such as /login/reset/password still matches while a path
+      that merely starts with the same letters does not.
+    safety: false
+    matchers:
+      target_question_id: browser.check.login_wall
+      url_path:
+        - /login
+        - /login/*
+        - /login/**
+        - /signin
+        - /signin/*
+        - /signin/**
+        - /sign-in
+        - /sign-in/*
+        - /sign-in/**
+        - /auth
+        - /auth/*
+        - /auth/**
+        - /authenticate
+        - /authenticate/*
+        - /account/login
+        - /account/login/*
+        - /member/login
+        - /member/login/*
+        - /members-only
+        - /members-only/*
+        - /session/new
+    output:
+      type: check
+      value: true
+      confidence: 0.85
+
+  - id: browser.login_wall.password_field
+    name: Password field
+    description: >-
+      A text box whose accessible name is exactly a password prompt, in English
+      or in Bangla. A sign up form also carries such a field, which this rule
+      does not distinguish.
+    safety: false
+    matchers:
+      target_question_id: browser.check.login_wall
+      role:
+        - textbox
+      text_regex: '^(password|passcode|pass word|password confirmation|confirm password|পাসওয়ার্ড|পাসওয়ার্ড লিখুন)$'
+    output:
+      type: check
+      value: true
+      confidence: 0.8
+
+  - id: browser.login_wall.bangla_prompt
+    name: Bangla sign in prompt
+    description: >-
+      Any element whose accessible text asks the reader to sign in before
+      continuing, in Bangla (login korun, prabesh korun).
+    safety: false
+    matchers:
+      target_question_id: browser.check.login_wall
+      text_regex: 'লগ ইন করুন|লগইন করুন|সাইন ইন করুন|চালিয়ে যেতে|প্রবেশ করুন|সদস্য হতে'
+    output:
+      type: check
+      value: true
+      confidence: 0.88

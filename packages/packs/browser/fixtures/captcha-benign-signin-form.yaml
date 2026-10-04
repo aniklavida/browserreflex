@@ -1,0 +1,21 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: captcha
+expected:
+  no_match: true
+note: >-
+  A plain sign-in form without a human verification widget. Nothing on the page
+  names a challenge, so the check has no fast answer.
+snapshot:
+  url: https://accounts.example/signin
+  elements:
+    - role: heading
+      text: Sign in
+    - role: textbox
+      text: Email
+    - role: textbox
+      text: Password
+    - role: button
+      text: Sign in
+    - role: link
+      text: Reset your password

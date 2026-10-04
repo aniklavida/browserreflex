@@ -1,0 +1,16 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: captcha
+expected:
+  value: true
+snapshot:
+  url: https://accounts.example/signup
+  elements:
+    - role: heading
+      text: Create an account
+    - role: group
+      text: Select all images with traffic lights
+    - role: button
+      text: Verify
+    - role: link
+      text: Get an audio challenge instead

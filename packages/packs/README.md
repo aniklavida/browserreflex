@@ -14,3 +14,8 @@ A pattern pack is a versioned YAML document containing a manifest and a list of 
 - Rules: `id`, `matchers`, `output`, optional `name`, `description`, `safety` flag and `confidence`.
 
 Validating JSON schema is provided in `schema.json`.
+
+## Shipped packs
+
+- `browser/`: the seven browser checks (cookie banner, newsletter or promo popup, login wall, captcha, payment, destructive and outbound actions) as seven versioned YAML files, with 65 synthetic fixtures in `browser/fixtures/`. Status: **implemented and tested** for the rules and the fixtures; the `page_check` and `action_guard` tools that would serve them are **planned**. See [browser/README.md](browser/README.md).
+- `examples/`: a tiny example pack used by the loader tests.
