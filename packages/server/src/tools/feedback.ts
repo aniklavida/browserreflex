@@ -14,6 +14,9 @@
  *    input, not the value the decision row carries.
  * 5. When the decision names a pattern, records one agree or disagree sample against
  *    that pattern's statistics and reports the resulting accuracy.
+ * 6. Captures the signals of the decision through `learning/capture.ts`. A correction is
+ *    where a pattern and a person disagreed, so it is captured whatever path produced
+ *    the original answer.
  *
  * Invariants:
  * - The decision row is left exactly as it was written. A correction is a separate
@@ -43,6 +46,7 @@ import { z } from 'zod';
 import type { ZodRawShape } from 'zod';
 import type { DecisionType } from '../core/schema.js';
 import { getDefaultStore } from '../core/log.js';
+import { captureDecisionSignals } from '../learning/capture.js';
 import { redact } from '../security/redact.js';
 import type {
   DatabaseStore,
@@ -371,6 +375,10 @@ export async function executeFeedback(
     note: redactedNote,
     source,
   });
+
+  // A correction is a slow-path signal the miner needs, whatever path produced the
+  // original answer. The decision row itself is left exactly as it was written.
+  captureDecisionSignals({ store, decision, source: 'human_correction' });
 
   return {
     status: 'recorded',

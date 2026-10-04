@@ -214,3 +214,51 @@ export interface Setting {
   value: string;
   updated_at: string;
 }
+
+/**
+ * Where a signals row's element_role, element_text and selector came from.
+ *
+ * The row names this rather than leaving it to be inferred, because a row that
+ * says `first_snapshot_element` says the text is the first element of the
+ * snapshot and not necessarily the element the decision was about.
+ */
+export type SignalElementSource = 'target' | 'first_snapshot_element' | 'none';
+
+/** Why a decision's signals were captured: a slow-path answer, or a human correction. */
+export type CaptureSource = 'slow_path_answer' | 'human_correction';
+
+export interface DecisionSignal {
+  decision_id: string;
+  domain: string | null;
+  path: string | null;
+  element_role: string | null;
+  element_text: string | null;
+  element_source: SignalElementSource;
+  selector: string | null;
+  /** Normalised, lower-cased tokens. Empty rather than null: there is always a list. */
+  tokens: string[];
+  source: CaptureSource;
+  created_at: string;
+}
+
+export interface UpsertDecisionSignal {
+  decision_id: string;
+  domain?: string | null;
+  path?: string | null;
+  element_role?: string | null;
+  element_text?: string | null;
+  element_source?: SignalElementSource;
+  selector?: string | null;
+  tokens?: string[];
+  source: CaptureSource;
+  created_at?: string;
+}
+
+export interface DecisionSignalFilter {
+  domain?: string;
+  path?: string;
+  element_role?: string;
+  source?: CaptureSource;
+  limit?: number;
+  offset?: number;
+}
