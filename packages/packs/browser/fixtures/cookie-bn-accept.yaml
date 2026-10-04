@@ -1,0 +1,16 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: cookie_banner
+expected:
+  value: cookie_banner
+snapshot:
+  url: https://shop.example/cart
+  elements:
+    - role: region
+      text: আমরা কুকি ব্যবহার করি আপনার অভিজ্ঞতা উন্নত করতে। আপনি কী অনুমোদন করতে চান নির্বাচন করুন।
+    - role: button
+      text: সব সম্মতি
+    - role: button
+      text: প্রত্যাখ্যান করুন
+    - role: link
+      text: কুকি সেটিংস

@@ -1,0 +1,17 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: newsletter_popup
+expected:
+  value: promo
+  pattern_id: browser.popup.promo.subscribe_control
+snapshot:
+  url: https://shop.example.bd/product/7a2
+  elements:
+    - role: heading
+      text: মশলার ঝুড়ি
+    - role: button
+      text: নিবন্ধন করুন
+    - role: paragraph
+      text: প্রতি সপ্তাহে নতুন অফারের খবর পান।
+    - role: link
+      text: বিস্তারিত দেখুন

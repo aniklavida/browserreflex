@@ -1,0 +1,21 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: payment
+expected:
+  no_match: true
+note: >-
+  Adding to a wishlist and opening the order history are neither payment nor
+  destructive actions. No risky rule fires, so the decision has no fast answer.
+snapshot:
+  url: https://shop.example/orders
+  elements:
+    - role: heading
+      text: Order history
+    - role: listitem
+      text: Order 4412, delivered
+    - role: link
+      text: Reorder
+    - role: button
+      text: Add all to wishlist
+    - role: link
+      text: Track your package

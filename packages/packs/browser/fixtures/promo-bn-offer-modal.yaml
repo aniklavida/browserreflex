@@ -1,0 +1,16 @@
+synthetic: true
+provenance: Synthetic example written to resemble a real accessibility tree; not a capture of any real site.
+check: newsletter_popup
+expected:
+  value: promo
+snapshot:
+  url: https://shop.example.bd/cart
+  elements:
+    - role: dialog
+      text: সীমিত সময়ের অফার — প্রথম অর্ডারে ১৫% ছাড়
+    - role: textbox
+      text: ইমেইল ঠিকানা
+    - role: button
+      text: ছাড় পান
+    - role: button
+      text: বন্ধ করুন
