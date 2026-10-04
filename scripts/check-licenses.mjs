@@ -14,10 +14,23 @@ export const ALLOWED_LICENSES = new Set([
 ]);
 
 /**
- * Checks whether a license identifier or expression is allowed.
- * Permitted licences: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC.
+ * Explicit allowlist for bundled font assets (SIL Open Font License 1.1).
+ * Fonts are static typography assets bundled into the UI build, not executed code.
  */
-export function isLicenseAllowed(license) {
+export const ALLOWED_PACKAGE_LICENSES = new Map([
+  ['@fontsource/archivo', 'OFL-1.1'],
+  ['@fontsource/dm-mono', 'OFL-1.1'],
+]);
+
+/**
+ * Checks whether a license identifier or expression is allowed.
+ * Permitted licences: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC,
+ * plus explicit allowlist entries for bundled font assets.
+ */
+export function isLicenseAllowed(license, packageName) {
+  if (packageName && ALLOWED_PACKAGE_LICENSES.get(packageName) === license) {
+    return true;
+  }
   if (!license || typeof license !== 'string') return false;
   const clean = license.trim().replace(/[()]/g, '');
 
@@ -45,7 +58,7 @@ export function validatePackageList(packages) {
 
   for (const pkg of packages) {
     const { name, version, license } = pkg;
-    const allowed = isLicenseAllowed(license);
+    const allowed = isLicenseAllowed(license, name);
     checked.push({ name, version, license, allowed });
     if (!allowed) {
       violations.push({ name, version, license: license || 'UNKNOWN' });

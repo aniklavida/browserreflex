@@ -46,6 +46,10 @@ export interface ApiStats {
   feedback: {
     total: number;
   };
+  /** Learned patterns the monitor disabled and that nobody has dismissed. */
+  drift_alerts: {
+    active: number;
+  };
 }
 
 /** Counts the rows the statistics endpoint reports. */
@@ -75,6 +79,9 @@ export function buildStats(store: DatabaseStore): ApiStats {
     },
     feedback: {
       total: store.feedback.list().length,
+    },
+    drift_alerts: {
+      active: store.driftAlerts.list({ status: 'active' }).length,
     },
   };
 }

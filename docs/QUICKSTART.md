@@ -10,7 +10,7 @@ Fast, typed answers to the small decisions a browser agent makes again and again
 | CLI commands (`init`, `serve`, `report`) | **implemented and tested** on macOS; Linux and Windows are **experimental** |
 | Agent configuration layouts written by `init` | **experimental** (written to published conventions; unverified against live agent runs) |
 | Chat mode (no key) and Bring-Your-Own-Key (BYOK) mode | **experimental** (fixture-tested only; live provider calls unsupported / not tested) |
-| Local web UI | **planned** (the `init` wizard route answers 404 until built) |
+| Local web UI | shell and seven pages **implemented and tested** against a mocked API, never run against a live agent; the other pages and entering a key in the browser are **planned** |
 | Enforcement of safety rules inside agent hosts | **unsupported** |
 
 ## Honest limits
@@ -71,7 +71,7 @@ node packages/cli/dist/bin.js init [options]
 3. **Preserves existing settings.** Only the `browserreflex` server entry is added. All other keys, server definitions, formatting, and comments are preserved.
 4. **Starts the local REST API.** Launches the local REST API on `127.0.0.1:4040` (or the port specified by `--port`), opening the SQLite database at `~/.browserreflex/browserreflex.db`. The API is bound strictly to loopback and protected by a localhost host-header guard.
 5. **Attempts to open the setup wizard.** Tries to launch the setup wizard in your default browser.
-   > **Note on Local UI:** The local web UI is **planned**. The setup wizard route currently responds with HTTP 404, and `init` prints an honest notification rather than claiming a page is reachable.
+   > **Note on the local UI:** `pnpm build` builds the UI into `packages/ui/dist`, and `init` serves it, so the setup wizard is at `/setup` on that port. If the UI was not built, the route answers 404 and `init` says so rather than claiming a page is reachable. The UI is tested against a mocked API only.
 
 ### CLI options for `init`
 

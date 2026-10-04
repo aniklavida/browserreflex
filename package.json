@@ -5,10 +5,10 @@
   "type": "module",
   "packageManager": "pnpm@12.4.2",
   "scripts": {
-    "build": "pnpm --filter=@browserreflex/server run build",
+    "build": "pnpm --filter=@browserreflex/server run build && pnpm --filter=@browserreflex/ui run build",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "typecheck": "tsc --noEmit && pnpm --filter=@browserreflex/ui run typecheck",
+    "test": "vitest run && pnpm --filter=@browserreflex/ui run test",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "check-licenses": "node scripts/check-licenses.mjs",

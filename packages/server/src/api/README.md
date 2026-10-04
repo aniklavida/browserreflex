@@ -10,8 +10,7 @@ server.
 - Localhost guard (`guard.ts`): **implemented and tested**.
 - Settings masking and refusal (`settings-mask.ts`): **implemented and tested**.
 - Serving a built UI (`static-ui.ts`): **implemented and tested** against a
-  directory a test builds. The UI itself is **planned**: `packages/ui` is an empty
-  placeholder package, so there is no build to serve yet.
+  directory a test builds. `packages/ui` builds into `dist/`, which the CLI serves.
 - Wiring the API into the MCP start-up or the CLI: **planned**.
 
 ## Endpoints
@@ -20,7 +19,7 @@ All responses are JSON, snake_case, served on `127.0.0.1`.
 
 | Method | Path | Answers |
 |---|---|---|
-| GET | `/api/stats` | Counts over the local store, including the fast-path share |
+| GET | `/api/stats` | Counts over the local store, including the fast-path share and the number of active drift alerts |
 | GET | `/api/decisions` | A page of decisions; filters `session_id`, `domain`, `path`, `needs_review`, `is_safety`, `limit`, `offset` |
 | GET | `/api/decisions/:id` | One decision |
 | GET | `/api/reviews` | The decisions waiting for a person; `limit`, `offset` |

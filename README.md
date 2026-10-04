@@ -4,7 +4,7 @@
 
 BrowserReflex is a self-hosted MCP server with a small local web UI. It sits beside a browser-automation agent. For repeated small questions (what kind of popup is this, is this button safe to click, is a login wall in the way) it answers from remembered inputs, written rules and direct checks of the page. When none of those is confident enough, the question goes to the agent's own model, and that answer is stored so the next occurrence is fast.
 
-> **Status: pre-release.** The server core, all eight MCP tools, the browser pattern pack, the CLI commands (`init`, `serve`, `report`), and the advisory safety suite are **implemented and tested**. The local web UI and Docker support are **planned**. There is no stable release yet; see the capability table below for the state of each feature.
+> **Status: pre-release.** The server core, all eight MCP tools, the browser pattern pack, the CLI commands (`init`, `serve`, `report`), and the advisory safety suite are **implemented and tested**. The local web UI (seven pages and the shell) is **implemented and tested** against a mocked API only and has never been run against a live agent; the other UI pages, entering a key in the browser and Docker support are **planned**. There is no stable release yet; see the capability table below for the state of each feature.
 
 ## What it is, and what it is not
 
@@ -31,7 +31,7 @@ BrowserReflex is a self-hosted MCP server with a small local web UI. It sits bes
 | Advisory safety test suite (payment, destructive, outbound, secrets, prompt injection, benign) | implemented and tested (193 cases, 30 property tests, 0 misses) |
 | Learning loop: capture, mine, shadow test, promote, re-check, demote | capture, miners, calibration, shadow test, promotion, re-check, demotion and drift alerts implemented and tested; no real-use result yet |
 | Chat mode (no key) and bring-your-own-key mode | experimental (fixture-tested only) |
-| Local UI: setup wizard, dashboard, review queue, thresholds and safety, engines and keys | planned |
+| Local UI: shell, setup wizard, dashboard, review queue, thresholds and safety, engines and keys, learned patterns, analytics overview | implemented and tested against a mocked API; never run against a live agent. Other pages and entering a key in the browser: planned |
 | Measurement report command (`browserreflex report`) | implemented and tested |
 | Gate 3 alpha evaluation | not measured |
 | Coding pack, analytics, reports, integrations, team mode, community packs | planned for later versions |
